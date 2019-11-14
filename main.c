@@ -35,6 +35,7 @@ int main(int argc, char **argv)
     /*Insertamos las transiciones lambda*/
     AFNDInsertaLTransicion(AFND, "q0", "q1");
     AFNDInsertaLTransicion(AFND, "q3", "q5");
+    AFNDInsertaLTransicion(AFND, "q4", "q3");
 
     /*ponemos la cadena a procesar
     AFNDInsertaLetra(AFND, char * letra)*/
@@ -49,17 +50,18 @@ int main(int argc, char **argv)
     int *retorno;
     
 
-    retorno = get_lambda_transition(AFND, 0);
+    retorno = get_estados_destino_with_lambdas(AFND,array,1,1);
 
     if (retorno != NULL)
     {
-        for (i = 0; i < 2; i++)
+        for (i = 0; retorno[i] != -1; i++)
         {
             printf("%s\n", AFNDNombreEstadoEn(AFND,retorno[i]));
         }
     }
 
     /*AFNDADot(AFND_aux);*/
+    AFNDADot(AFND);
 
     /*transformacionEliminaLTransiciones(AFND);*/
 

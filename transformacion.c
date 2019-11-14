@@ -5,8 +5,10 @@
 #include "afnd.h"
 #include "transformacion.h"
 
+/*Funciones de manipulacion de arrays de enteros*/
 int isInArrayEstados(int *arrayEstados, int number, int tamano);
-int AFNDContieneEstadoNombre(AFND *AFND, char *nombre);
+int anadir_estados_array(int *estados_ini, int *estados_extra);
+int *copiar_array(int *array_original);
 
 AFND *transformacionEliminaLTransiciones(AFND *AFNDOriginal)
 {
@@ -245,7 +247,7 @@ AFND *transformacionEliminaLTransiciones(AFND *AFNDOriginal)
     }
 
     AFNDImprime(stdout, newAFND);
-    AFNDADot(newAFND);
+    /*AFNDADot(newAFND);*/
 
     free(arrayEstados);
     AFNDElimina(newAFND);
@@ -332,6 +334,11 @@ int *get_estados_destino(AFND *original, int *estado, int n_estados_compruebo, i
         }
     }
 
+    /*Para recorrer el bucle luego*/
+    n_estados++;
+    estados_final = realloc(estados_final, n_estados * sizeof(int));
+    estados_final[n_estados - 1] = -1;
+
     return estados_final;
 }
 
@@ -380,6 +387,11 @@ int *get_lambda_transition(AFND *original, int estado_input)
     estados_final = realloc(estados_final, n_estados * sizeof(int));
     estados_final[n_estados - 1] = estado_input;
 
+    /*Le añado el -1 para conocer el tamaño sin problema*/
+    n_estados++;
+    estados_final = realloc(estados_final, n_estados * sizeof(int));
+    estados_final[n_estados - 1] = -1;
+
     return estados_final;
 }
 
@@ -389,38 +401,72 @@ int *get_estados_destino_with_lambdas(AFND *original, int *estado, int n_estados
     int *estados_final = NULL; /*Los estados a los que transiciona*/
     int n_estados = 0;         /*El conjunto de estados que contiene*/
     int estados_max;
-    int i;
+    int *estados_output;
+    int *estados_lambda_aux;
+    int *estados_output_aux;
+    int i, check_loop;
 
     if (original == NULL || estado == NULL)
     {
         return NULL;
     }
+
+    /*Los estados a los que se transiciona mediante el simbolo*/
+    estados_output_aux = get_estados_destino(original, estado, n_estados_compruebo, simbolo);
+    estados_output = get_estados_destino(original, estado, n_estados_compruebo, simbolo);
+
+    /*Comprobamos los estados a los que se tranciona via lambda*/
+    do
+    {
+        check_loop = 0;
+        for (i = 0; estados_output_aux[i] != -1; i++)
+        {
+            estados_lambda_aux = get_lambda_transition(original, estados_output_aux[i]);
+            if (anadir_estados_array(estados_output, estados_lambda_aux) > 0)
+            {
+                check_loop = 1;
+            }
+        }
+
+        free(estados_output_aux);
+        if (check_loop == 1)
+            estados_output_aux = copiar_array(estados_output);
+    } while (check_loop == 0);
+
+    return estados_output;
 }
 
-
 /*Check Pending*/
-int anadir_estados_array(int *estados_ini, int *estados_extra, int *n_estados_ini, int n_estados_extra)
+int anadir_estados_array(int *estados_ini, int *estados_extra)
 {
-    int i, j;
+    int i, j, aux;
     int ret = 0;
     int no_contiene = 1;
-    int estados_ini_aux;
+    int estados_ini_aux, n_estados_extra;
 
     if (estados_ini == NULL || estados_extra == NULL)
     {
         return 0;
     }
 
-    estados_ini_aux = *n_estados_ini;
+    /*Cogemos el numero de estados al principio y al final*/
+    for (i = 0; estados_ini[i] != -1; i++)
+        ;
+    estados_ini_aux = i;
+
+    for (i = 0; estados_extra[i] != -1; i++)
+        ;
+    n_estados_extra = i;
 
     /*recorremos el conjunto de estados al final*/
     for (i = 0; i < n_estados_extra; i++)
     {
+        no_contiene = 1;
         /*Vemos si el conjunto de estados ini lo contiene*/
-        for (j = 0; j < estados_ini_aux && no_contiene == 0; j++)
+        for (j = 0; j < estados_ini_aux && no_contiene == 1; j++)
         {
             /*En el caso de que lo contenga no hay nada que hacer*/
-            if (estados_ini[i] == estados_extra[j])
+            if (estados_ini[j] == estados_extra[i])
             {
                 no_contiene = 0;
             }
@@ -428,17 +474,44 @@ int anadir_estados_array(int *estados_ini, int *estados_extra, int *n_estados_in
         /*Si no lo contenia lo aniadimos*/
         if (no_contiene == 1)
         {
+
             estados_ini_aux++;
             estados_ini = realloc(estados_ini, estados_ini_aux * sizeof(int));
-            estados_ini[estados_ini_aux - 1] = i;
+            estados_ini[estados_ini_aux - 1] = estados_extra[i];
+            estados_ini[estados_ini_aux] = -1;
+            ret++;
+        }
+
+        no_contiene = 1;
+    }
+
+    return ret;
+}
+
+/*Tira guay*/
+int *copiar_array(int *array_original)
+{
+    int i, aux;
+    int *new_array = NULL;
+
+    new_array = (int *)calloc(1, sizeof(int));
+
+    for (i = 0; array_original[i] != -1; i++)
+    {
+        if (new_array == NULL)
+        {
+            new_array = (int *)calloc(1, sizeof(int));
+            new_array[i] = array_original[i];
         }
         else
         {
-            no_contiene = 1;
+            new_array = realloc(new_array, (i + 1) * sizeof(int));
+            new_array[i] = array_original[i];
         }
     }
 
-    *n_estados_ini = estados_ini_aux;
+    new_array = realloc(new_array, (i + 1) * sizeof(int));
+    new_array[i] = -1;
 
-    return ret;
+    return new_array;
 }

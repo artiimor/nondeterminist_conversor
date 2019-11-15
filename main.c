@@ -3,12 +3,14 @@
 #include <string.h>
 
 #include "afnd.h"
+#include "state.h"
 #include "transformacion.h"
 
 int main(int argc, char **argv)
 {
     AFND *AFND, *AFND_aux;
     AFND = AFNDNuevo("automata", 6, 3);
+    state *state;
 
     /*Insertamos los simbolos*/
     AFNDInsertaSimbolo(AFND, "+");
@@ -52,6 +54,8 @@ int main(int argc, char **argv)
 
     retorno = get_estados_destino_with_lambdas(AFND,array,1,1);
 
+    state = new_state(retorno);
+
     if (retorno != NULL)
     {
         for (i = 0; retorno[i] != -1; i++)
@@ -59,6 +63,10 @@ int main(int argc, char **argv)
             printf("%s\n", AFNDNombreEstadoEn(AFND,retorno[i]));
         }
     }
+
+    printf("\n\n\n");
+
+    state_calculate_name(state, AFND);
 
     /*AFNDADot(AFND_aux);*/
     AFNDADot(AFND);

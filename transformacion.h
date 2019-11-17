@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include "afnd.h"
+#include "transicion.h"
 
 /**
  * Comprueba si un automata tiene un estado con el nombre introducido
@@ -60,7 +61,7 @@ int *get_lambda_transition(AFND *original, int estado_input);
  */
 int *get_estados_destino_with_lambdas(AFND *original, int *estado, int n_estados_compruebo, int simbolo);
 
-
+transicion *AFND_obtener_tabla_transicion(AFND *AFND);
 
 
 #endif

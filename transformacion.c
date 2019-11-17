@@ -3,263 +3,119 @@
 #include <string.h>
 
 #include "afnd.h"
+#include "transicion.h"
 #include "transformacion.h"
 
 /*Funciones de manipulacion de arrays de enteros*/
 int isInArrayEstados(int *arrayEstados, int number, int tamano);
 int anadir_estados_array(int *estados_ini, int *estados_extra);
 int *copiar_array(int *array_original);
+int contar_array(int *array_original);
+int is_content_equal(int *array_1, int *array_2);
 
-AFND *transformacionEliminaLTransiciones(AFND *AFNDOriginal)
+AFND *AFND_convertir_a_determinista(AFND *original)
 {
-    AFND *newAFND;
-    int nSimbolos;
-    int nEstadosAntes, nEstadosDespues;
-    int i, j, k, l, aux;
-    int nLambdas = 0;
+    AFND *determinista;
 
-    int estado_i, estado_j;
-
-    int iArrayEstados = 0;
-    int *arrayEstados;
-
-    char *nombre1, *nombre2, *nombre_aux;
-
-    int eliminado = 0;
-
-    if (AFNDOriginal == NULL)
+    if (original == NULL)
     {
         return NULL;
     }
 
-    nSimbolos = AFNDNumSimbolos(AFNDOriginal);
-    nEstadosAntes = AFNDNumEstados(AFNDOriginal);
-    nEstadosDespues = nEstadosAntes;
+    return determinista;
+}
 
-    /*Calculamos el cierre transitivo para comprobar las transiciones lambda*/
-    AFNDCierraLTransicion(AFNDOriginal);
+transicion *AFND_obtener_tabla_transicion(AFND *AFND)
+{
+    transicion **tabla_transicion; /*Array de transiciones*/
+    transicion *transicion_aux;
+    int ini, index_aux, i, j, k, count, condicion, n_transiciones = 1;
+    int n_simbolos;
+    int *estados_ini, *estados_aux; /*Arrays de estados*/
+    int **estados_pendientes;       /*Array de estados a analizar*/
+    int estado_revisado = 0;        /*Estado que estamos analizando*/
+    int len_estados = 1;
 
-    /* Sobre el numero de estados finales:
-     * -Si un estado tiene una transicion lambda el numero de estados es uno menor
-     * -Si un estado tiene dos transiciones lambda el numero es estados es uno mayor
-     * -A partir de dos se suma un estado por cada transicion lambda
-     */
-
-    /* Hacemos el bucle encargado de ver el numero de estados al final
-     */
-    for (i = 0; i < nEstadosAntes; i++)
+    if (AFND == NULL)
     {
-        for (j = 0; j < nEstadosAntes; j++)
+        return NULL;
+    }
+
+    /*INICIALIZACIONES*/
+    n_simbolos = AFNDNumSimbolos(AFND);
+    estados_pendientes = (int **)malloc(sizeof(int *));
+    estados_pendientes[0] = NULL;
+    tabla_transicion = (transicion **)malloc(sizeof(transicion *));
+    tabla_transicion[0] = NULL;
+
+    /*Primero cogemos el estado inicial y vemos a cuales transita con lambda*/
+    ini = AFNDIndiceEstadoInicial(AFND);
+    estados_ini = get_lambda_transition(AFND, ini);
+
+    /*Metemos en la lista a analizar a estados_ini*/
+    len_estados++;
+    estados_pendientes = realloc(estados_pendientes, len_estados * sizeof(int *));
+    estados_pendientes[len_estados - 2] = estados_ini;
+    estados_pendientes[len_estados - 1] = NULL;
+
+    /*Bucle principal*/
+    while (estados_pendientes[estado_revisado] != NULL)
+    {
+        /*Miramos las posibles transiciones*/
+        for (i = 0; i < n_simbolos; i++)
         {
-            /*Solo me importa cuando i y j son distintos*/
-            if (i != j)
+            count = contar_array(estados_pendientes[estado_revisado]);
+            estados_aux = get_estados_destino_with_lambdas(AFND, estados_pendientes[estado_revisado], count, i);
+
+            /*añadimos el resultado al array de pendientes*/
+            condicion = 0;
+            if (estados_aux != NULL)
             {
-                if (AFNDCierreLTransicionIJ(AFNDOriginal, i, j) == 1)
+                /*Primero lo añado a las transiciones*/
+                transicion_aux = transicion_new(estados_pendientes[estado_revisado], i, estados_aux);
+                n_transiciones++;
+                tabla_transicion = realloc(tabla_transicion, n_transiciones * sizeof(transicion *));
+                tabla_transicion[n_transiciones - 2] = transicion_aux;
+                tabla_transicion[n_transiciones - 1] = NULL;
+
+                /*Si transiciona lo añadimos al array que revisa*/
+                /*comprobar que el array no estaba antes*/
+                for (j = 0; estados_pendientes[j] != NULL && condicion == 0; j++)
                 {
-                    nLambdas++;
+                    if (is_content_equal(estados_aux, estados_pendientes[j]))
+                    {
+
+                        condicion = 1;
+                    }
+                }
+
+                if (condicion == 0 && estados_aux != NULL)
+                {
+
+                    len_estados++;
+                    estados_pendientes = realloc(estados_pendientes, len_estados * sizeof(int *));
+                    estados_pendientes[len_estados - 2] = estados_aux;
+                    estados_pendientes[len_estados - 1] = NULL;
+                    /*añadimos la transicion*/
                 }
             }
         }
-        if (nLambdas == 1)
-        {
-            nEstadosDespues--;
-        }
-        if (nLambdas > 1)
-        {
-            nEstadosDespues += (nLambdas - 1);
-        }
-
-        nLambdas = 0;
+        estado_revisado++;
     }
 
-    nEstadosDespues++;
-
-    /*Creamos el nuevo automata finito no determinista*/
-    newAFND = AFNDNuevo("SinLambdas", nEstadosDespues, nSimbolos);
-
-    for (i = 0; i < nSimbolos; i++)
+    for (i = 0; tabla_transicion[i] != NULL; i++)
     {
-        AFNDInsertaSimbolo(newAFND, AFNDSimboloEn(AFNDOriginal, i));
+        transicion_debug(AFND, tabla_transicion[i]);
     }
 
-    /*Le añadimos los nuevos estados al automata finito no determinista*/
-
-    /*Creamos un array donde almacenaremos los indices de los estados que
-      hemos añadido al AFND nuevo*/
-    arrayEstados = (int *)calloc(nEstadosAntes, sizeof(int));
-
-    /*Repetimos el bucle anterior*/
-    for (i = 0; i < nEstadosAntes; i++)
-    {
-        for (j = 0; j < nEstadosAntes; j++)
-        {
-            if (i != j)
-            {
-                /*Cuando se de esta condicion tenemos que añadir un nuevo estado*/
-                /*Tambien añadimos un nuevo estado al array de estados eliminados*/
-                /*TODO añadir conjunto de transiciones de los dos estados*/
-
-                if (AFNDCierreLTransicionIJ(AFNDOriginal, i, j) == 1)
-                {
-                    nombre1 = AFNDNombreEstadoEn(AFNDOriginal, i);
-                    nombre2 = AFNDNombreEstadoEn(AFNDOriginal, j);
-                    estado_i = AFNDTipoEstadoEn(AFNDOriginal, i);
-                    estado_j = AFNDTipoEstadoEn(AFNDOriginal, j);
-                    /*Comparacion para el nombre del estado (alfabetico)*/
-                    nombre_aux = (char *)calloc(strlen(nombre1) + strlen(nombre2), sizeof(char *));
-                    if (strcmp(nombre1, nombre2) < 0)
-                    {
-                        strcat(nombre_aux, nombre1);
-                        strcat(nombre_aux, nombre2);
-                    }
-                    else
-                    {
-                        strcat(nombre_aux, nombre2);
-                        strcat(nombre_aux, nombre1);
-                    }
-
-                    /*Comprobamos las posibles combinaciones para el tipo de estado*/
-                    if ((estado_i == INICIAL && estado_j == FINAL) || (estado_i == FINAL && estado_j == INICIAL))
-                    {
-                        AFNDInsertaEstado(newAFND, nombre_aux, INICIAL_Y_FINAL);
-                    }
-                    else if (estado_i == INICIAL || estado_j == INICIAL)
-                    {
-                        AFNDInsertaEstado(newAFND, nombre_aux, INICIAL);
-                    }
-                    else if (estado_i == FINAL || estado_j == FINAL)
-                    {
-                        AFNDInsertaEstado(newAFND, nombre_aux, FINAL);
-                    }
-                    else
-                    {
-                        AFNDInsertaEstado(newAFND, nombre_aux, NORMAL);
-                    }
-
-                    if (isInArrayEstados(arrayEstados, i, nEstadosAntes) == 0)
-                    {
-                        arrayEstados[iArrayEstados] = i;
-                        iArrayEstados++;
-                    }
-
-                    free(nombre_aux);
-                }
-            }
-        }
-        /*Si no lo he añadido al array de estados eliminados, añado el estado*/
-        if (isInArrayEstados(arrayEstados, i, nEstadosAntes) == 0)
-        {
-            AFNDInsertaEstado(newAFND, AFNDNombreEstadoEn(AFNDOriginal, i), AFNDTipoEstadoEn(AFNDOriginal, i));
-        }
-    }
-
-    /*********************************************************************************/
-    /*********************************************************************************/
-    /*********************************************************************************/
-    /*Repetimos el bucle anterior*/
-    for (i = 0; i < nEstadosAntes; i++)
-    {
-        for (j = 0; j < nEstadosAntes; j++)
-        {
-            if (i != j)
-            {
-                if (AFNDCierreLTransicionIJ(AFNDOriginal, i, j) == 1)
-                {
-                    eliminado = 1;
-                    nombre1 = AFNDNombreEstadoEn(AFNDOriginal, i);
-                    nombre2 = AFNDNombreEstadoEn(AFNDOriginal, j);
-
-                    /*Comparacion para el nombre del estado (alfabetico)*/
-                    nombre_aux = (char *)calloc(strlen(nombre1) + strlen(nombre2), sizeof(char *));
-                    if (strcmp(nombre1, nombre2) < 0)
-                    {
-                        strcat(nombre_aux, nombre1);
-                        strcat(nombre_aux, nombre2);
-                    }
-                    else
-                    {
-                        strcat(nombre_aux, nombre2);
-                        strcat(nombre_aux, nombre1);
-                    }
-
-                    /*añadimos las transiciones correspondientes al automata*/
-                    /*Caso para los estados multiples*/
-                    for (k = 0; k < nSimbolos; k++)
-                    {
-                        for (l = 0; l < nEstadosAntes; l++)
-                        {
-                            if (AFNDTransicionIndicesEstadoiSimboloEstadof(AFNDOriginal, i, k, l) == 1 || AFNDTransicionIndicesEstadoiSimboloEstadof(AFNDOriginal, j, k, l) == 1)
-                            {
-                                /*Si no contiene el estado al que transita es que se ha unido a otro*/
-                                if (AFNDContieneEstadoNombre(newAFND, AFNDNombreEstadoEn(AFNDOriginal, l)) == -1)
-                                {
-                                    for (aux = 0; aux < nEstadosDespues; aux++)
-                                    {
-                                        if (strstr(AFNDNombreEstadoEn(newAFND, aux), AFNDNombreEstadoEn(AFNDOriginal, l)) != NULL)
-                                        {
-                                            AFNDInsertaTransicion(newAFND, nombre_aux, AFNDSimboloEn(AFNDOriginal, k), AFNDNombreEstadoEn(newAFND, aux));
-                                        }
-                                    }
-                                }
-                                /*Si, por el contrario, contiene el estado al que transita, se añade la transicion sin problema*/
-                                else
-                                {
-                                    AFNDInsertaTransicion(newAFND, nombre_aux, AFNDSimboloEn(AFNDOriginal, k), AFNDNombreEstadoEn(AFNDOriginal, l));
-                                }
-                            }
-                        }
-                    }
-                    free(nombre_aux);
-                }
-            }
-        }
-        /*En el caso de que el estado que comprobamos no haya sido eliminado*/
-        if (eliminado == 0)
-        {
-            for (k = 0; k < nSimbolos; k++)
-            {
-                for (l = 0; l < nEstadosAntes; l++)
-                {
-                    /*Si el estado i transita a otro*/
-                    if (AFNDTransicionIndicesEstadoiSimboloEstadof(AFNDOriginal, i, k, l) == 1)
-                    {
-                        /*Si no contiene el estado al que transita es que ha sido eliminado por una lambda*/
-                        if (AFNDContieneEstadoNombre(newAFND, AFNDNombreEstadoEn(AFNDOriginal, l)) == -1)
-                        {
-                            for (aux = 0; aux < nEstadosDespues; aux++)
-                            {
-                                if (strstr(AFNDNombreEstadoEn(newAFND, aux), AFNDNombreEstadoEn(AFNDOriginal, l)) != NULL)
-                                {
-                                    AFNDInsertaTransicion(newAFND, AFNDNombreEstadoEn(AFNDOriginal, i), AFNDSimboloEn(AFNDOriginal, k), AFNDNombreEstadoEn(newAFND, aux));
-                                }
-                            }
-                        }
-                        /*En el caso de que si contenga el estado al que transita*/
-                        else
-                        {
-                            AFNDInsertaTransicion(newAFND, AFNDNombreEstadoEn(AFNDOriginal, i), AFNDSimboloEn(AFNDOriginal, k), AFNDNombreEstadoEn(AFNDOriginal, l));
-                        }
-                    }
-                }
-            }
-        }
-        eliminado = 0;
-    }
-
-    AFNDImprime(stdout, newAFND);
-    /*AFNDADot(newAFND);*/
-
-    free(arrayEstados);
-    AFNDElimina(newAFND);
-
-    return NULL;
+    return tabla_transicion;
 }
 
 int isInArrayEstados(int *arrayEstados, int number, int tamano)
 {
     int i;
 
-    for (i = 0; i < tamano; i++)
+    for (i = 0; i < tamano && arrayEstados[i] != -1; i++)
     {
         if (arrayEstados[i] == number)
         {
@@ -334,6 +190,11 @@ int *get_estados_destino(AFND *original, int *estado, int n_estados_compruebo, i
         }
     }
 
+    if (n_estados == 0)
+    {
+        return NULL;
+    }
+
     /*Para recorrer el bucle luego*/
     n_estados++;
     estados_final = realloc(estados_final, n_estados * sizeof(int));
@@ -405,6 +266,7 @@ int *get_estados_destino_with_lambdas(AFND *original, int *estado, int n_estados
     int *estados_lambda_aux;
     int *estados_output_aux;
     int i, check_loop;
+    int count = 0;
 
     if (original == NULL || estado == NULL)
     {
@@ -414,8 +276,11 @@ int *get_estados_destino_with_lambdas(AFND *original, int *estado, int n_estados
     /*Los estados a los que se transiciona mediante el simbolo*/
     estados_output_aux = get_estados_destino(original, estado, n_estados_compruebo, simbolo);
     estados_output = get_estados_destino(original, estado, n_estados_compruebo, simbolo);
-
-    /*Comprobamos los estados a los que se tranciona via lambda*/
+    if (estados_output == NULL)
+    {
+        return NULL;
+    }
+    /*Comprobamos los esget_estados_destino_with_lambdastados a los que se tranciona via lambda*/
     do
     {
         check_loop = 0;
@@ -424,14 +289,18 @@ int *get_estados_destino_with_lambdas(AFND *original, int *estado, int n_estados
             estados_lambda_aux = get_lambda_transition(original, estados_output_aux[i]);
             if (anadir_estados_array(estados_output, estados_lambda_aux) > 0)
             {
+                count = 1;
                 check_loop = 1;
             }
         }
 
-        free(estados_output_aux);
+        /*free(estados_output_aux);*/
         if (check_loop == 1)
+        {
             estados_output_aux = copiar_array(estados_output);
-    } while (check_loop == 0);
+        }
+
+    } while (check_loop == 1);
 
     return estados_output;
 }
@@ -514,4 +383,47 @@ int *copiar_array(int *array_original)
     new_array[i] = -1;
 
     return new_array;
+}
+
+int contar_array(int *array_original)
+{
+    int count, i;
+
+    if (array_original == NULL)
+    {
+        return 0;
+    }
+
+    for (count = 0; array_original[count] != -1; count++)
+        ;
+
+    return count;
+}
+
+int is_content_equal(int *array_1, int *array_2)
+{
+    int count1, count2, i;
+
+    if (array_1 == NULL || array_2 == NULL)
+    {
+        return 0;
+    }
+
+    count1 = contar_array(array_1);
+    count2 = contar_array(array_2);
+
+    if (count1 != count2)
+    {
+        return 0;
+    }
+
+    for (i = 0; i < count1; i++)
+    {
+        if (isInArrayEstados(array_2, array_1[i], count1) == 0)
+        {
+            return 0;
+        }
+    }
+
+    return 1;
 }

@@ -3,14 +3,14 @@
 #include <string.h>
 
 #include "afnd.h"
-#include "state.h"
+#include "estado.h"
 #include "transformacion.h"
 
 int main(int argc, char **argv)
 {
     AFND *AFND, *AFND_aux;
     AFND = AFNDNuevo("automata", 6, 3);
-    state *state;
+    estado *state;
 
     /*Insertamos los simbolos*/
     AFNDInsertaSimbolo(AFND, "+");
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
     /*Insertamos las transiciones lambda*/
     AFNDInsertaLTransicion(AFND, "q0", "q1");
     AFNDInsertaLTransicion(AFND, "q3", "q5");
-    AFNDInsertaLTransicion(AFND, "q4", "q3");
+    /*AFNDInsertaLTransicion(AFND, "q4", "q3");*/
 
     /*ponemos la cadena a procesar
     AFNDInsertaLetra(AFND, char * letra)*/
@@ -45,28 +45,7 @@ int main(int argc, char **argv)
     AFND_aux = AFNDCierraLTransicion(AFND);
     AFNDImprimeConjuntoEstadosActual(stdout, AFND);
 
-    int array[1];
-    array[0] = 1;
-    int i;
-
-    int *retorno;
-    
-
-    retorno = get_estados_destino_with_lambdas(AFND,array,1,1);
-
-    state = new_state(retorno);
-
-    if (retorno != NULL)
-    {
-        for (i = 0; retorno[i] != -1; i++)
-        {
-            printf("%s\n", AFNDNombreEstadoEn(AFND,retorno[i]));
-        }
-    }
-
-    printf("\n\n\n");
-
-    state_calculate_name(state, AFND);
+    AFND_obtener_tabla_transicion(AFND);
 
     /*AFNDADot(AFND_aux);*/
     AFNDADot(AFND);
@@ -74,6 +53,5 @@ int main(int argc, char **argv)
     /*transformacionEliminaLTransiciones(AFND);*/
 
     AFNDElimina(AFND);
-    free (retorno);
     return 0;
 }

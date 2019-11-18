@@ -10,9 +10,6 @@ int main(int argc, char **argv)
 {
     AFND *AFND, *AFND_aux, *determinista;
     AFND = AFNDNuevo("automata", 6, 3);
-    determinista = AFNDNuevo("determinista", 6, 3);
-    printf("ME CAGO EN LA PUTA\n");
-    estado *state;
 
     /*Insertamos los simbolos*/
     AFNDInsertaSimbolo(AFND, "+");
@@ -49,7 +46,7 @@ int main(int argc, char **argv)
     
 
     
-    AFND_convertir_a_determinista(AFND, determinista);
+    determinista = AFND_convertir_a_determinista(AFND);
 
     
     

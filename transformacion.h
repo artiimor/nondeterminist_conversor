@@ -62,6 +62,6 @@ int *get_estados_destino_with_lambdas(AFND *original, int *estado, int n_estados
 
 transicion **AFND_obtener_tabla_transicion(AFND *AFND, int *n_estados);
 
-AFND *AFND_convertir_a_determinista(AFND *original, AFND *determinista);
+AFND *AFND_convertir_a_determinista(AFND *original);
 
 #endif

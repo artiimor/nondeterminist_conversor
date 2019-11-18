@@ -15,13 +15,23 @@ int contar_array(int *array_original);
 int is_content_equal(int *array_1, int *array_2);
 int n_estados_insertados = 0;
 
-AFND *AFND_convertir_a_determinista(AFND *original, AFND *determinista)
+AFND *AFND_convertir_a_determinista(AFND *original)
 {
     transicion **tabla_transicion;
     int n_estados, n_simbolos, i, j, condicion_input, condicion_output;
     int *input, *output;
     int tipo_input, tipo_output;
     char *nombre_input, *nombre_output, *nombre_simbolo;
+    AFND *determinista;
+
+    int *pointer1, *pointer2;
+
+    int array1[] = {19, 10, 8, 17, 9, -1};
+    int array2[] = {5, 57, 8, 9, 79, -1};
+
+    anadir_estados_array(array1, array2);
+
+    printf("HOLA MUNDO\n");
 
     if (original == NULL)
     {
@@ -31,6 +41,8 @@ AFND *AFND_convertir_a_determinista(AFND *original, AFND *determinista)
     n_simbolos = AFNDNumSimbolos(original);
 
     tabla_transicion = AFND_obtener_tabla_transicion(original, &n_estados);
+
+    determinista = AFNDNuevo("determinista", n_estados, n_simbolos);
 
     for (i = 0; i < n_simbolos; i++)
     {
@@ -56,21 +68,17 @@ AFND *AFND_convertir_a_determinista(AFND *original, AFND *determinista)
         tipo_input = transicion_get_input_state_type(original, tabla_transicion[i]);
         tipo_output = transicion_get_output_state_type(original, tabla_transicion[i]);
         /*añadimos los estados si no se encontraban antes*/
-        printf("SIMBOLO: %d\n",nombre_simbolo);
         for (j = 0; j < n_estados_insertados; j++)
         {
             if (strcmp(nombre_input, AFNDNombreEstadoEn(determinista, j)) == 0)
             {
-                printf("NOMBRE INPUT EXISTE%s %s\n", nombre_input);
                 condicion_input = 1;
             }
             if (strcmp(nombre_output, AFNDNombreEstadoEn(determinista, j)) == 0)
             {
-                printf("NOMBRE OUTPUT EXISTE%s\n", nombre_output);
                 condicion_output = 1;
             }
         }
-        printf("HOLA MUNDO\n");
         if (condicion_input == 0)
         {
             n_estados_insertados++;
@@ -85,7 +93,13 @@ AFND *AFND_convertir_a_determinista(AFND *original, AFND *determinista)
         /*Solo queda añadir la transicion*/
         AFNDInsertaTransicion(determinista, nombre_input, nombre_simbolo, nombre_output);
     }
-    AFNDImprime(stdout, determinista);
+
+    /*free tabla_transicion*/
+    for (i = 0; tabla_transicion[i] != NULL; i++)
+    {
+        free(tabla_transicion[i]);
+    }
+    free(tabla_transicion);
     return determinista;
 }
 
@@ -381,6 +395,7 @@ int anadir_estados_array(int *estados_ini, int *estados_extra)
     for (i = 0; estados_ini[i] != -1; i++)
         ;
     estados_ini_aux = i;
+    printf("estados_ini_aux = %d\n", estados_ini_aux);
 
     for (i = 0; estados_extra[i] != -1; i++)
         ;

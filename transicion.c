@@ -147,15 +147,11 @@ char *transicion_get_output_state_name(AFND *AFND, transicion *transicion)
     nombre_aux = AFNDNombreEstadoEn(AFND, transicion->output_states[i]);
 
     /*Si el nombre no lo hemos añadido ya*/
-    if (strstr(nombre, nombre_aux) == NULL)
-    {
+    
       /*Redimensionamos*/
-      len_aux += strlen(nombre_aux);
-      nombre = realloc(nombre, len_aux * sizeof(char *));
-
       /*añadimos la cadena*/
       strcat(nombre, nombre_aux);
-    }
+    
   }
 
   printf("El nombre to guapo que le hemos puesto es: %s\n", nombre);

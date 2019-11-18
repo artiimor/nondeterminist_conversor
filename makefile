@@ -1,4 +1,4 @@
-CC = gcc -ansi
+CC = gcc -g -ansi
 CFLAGS = -Wall
 EXE = main
 
@@ -51,4 +51,4 @@ dot :
 	dot -Tpdf determinista.dot -o automata.pdf
 
 runv:
-	valgrind --leak-check=full ./main
+	valgrind --leak-check=full --track-origins=yes ./main

@@ -36,25 +36,19 @@ int main(int argc, char **argv)
     /*Insertamos las transiciones lambda*/
     AFNDInsertaLTransicion(AFND, "q0", "q1");
     AFNDInsertaLTransicion(AFND, "q3", "q5");
-    /*AFNDInsertaLTransicion(AFND, "q4", "q3");*/
-
-    /*ponemos la cadena a procesar
-    AFNDInsertaLetra(AFND, char * letra)*/
 
     AFND_aux = AFNDCierraLTransicion(AFND);
     AFNDImprimeConjuntoEstadosActual(stdout, AFND);
-    
 
-    
     determinista = AFND_convertir_a_determinista(AFND);
 
-    
-    
-    
-    AFNDADot(determinista);
+    /*AFNDADot(determinista);*/
 
     /*transformacionEliminaLTransiciones(AFND);*/
 
     AFNDElimina(AFND);
+    AFNDElimina(determinista);
+
+    printf("CHECK FINAL\n");
     return 0;
 }

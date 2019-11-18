@@ -9,7 +9,7 @@
 
 /*Funciones de manipulacion de arrays de enteros*/
 int isInArrayEstados(int *arrayEstados, int number, int tamano);
-int anadir_estados_array(int *estados_ini, int *estados_extra);
+int anadir_estados_array(int **estados_ini, int *estados_extra);
 int *copiar_array(int *array_original);
 int contar_array(int *array_original);
 int is_content_equal(int *array_1, int *array_2);
@@ -23,20 +23,38 @@ AFND *AFND_convertir_a_determinista(AFND *original)
     int tipo_input, tipo_output;
     char *nombre_input, *nombre_output, *nombre_simbolo;
     AFND *determinista;
+    int *estados_1, *estados_2;
 
-    int *pointer1, *pointer2;
+    estados_1 = (int *)malloc(10 * sizeof(int));
+    estados_1[0] = 1;
+    estados_1[1] = 2;
+    estados_1[2] = 3;
+    estados_1[3] = 4;
+    estados_1[4] = 5;
+    estados_1[5] = 6;
+    estados_1[6] = 7;
+    estados_1[7] = 8;
+    estados_1[8] = 9;
+    estados_1[9] = -1;
 
-    int array1[] = {19, 10, 8, 17, 9, -1};
-    int array2[] = {5, 57, 8, 9, 79, -1};
+    estados_2 = (int *)malloc(5 * sizeof(int));
+    estados_2[0] = 10;
+    estados_2[1] = 2;
+    estados_2[2] = 23;
+    estados_2[3] = 4;
+    estados_2[4] = -1;
 
-    anadir_estados_array(array1, array2);
+    anadir_estados_array(&estados_1, estados_2);
 
-    printf("HOLA MUNDO\n");
-
-    if (original == NULL)
+    for (i = 0; estados_1[i] != -1; i++)
     {
-        return NULL;
+        printf("\n%d\n", estados_1[i]);
     }
+
+    free(estados_1);
+    free(estados_2);
+
+    return NULL;
 
     n_simbolos = AFNDNumSimbolos(original);
 
@@ -48,10 +66,6 @@ AFND *AFND_convertir_a_determinista(AFND *original)
     {
         AFNDInsertaSimbolo(determinista, AFNDSimboloEn(original, i));
     }
-
-    /****************************************************************/
-    /******************************REVISADO**********************************/
-    /****************************************************************/
 
     for (i = 0; tabla_transicion[i] != NULL; i++)
     {
@@ -167,7 +181,7 @@ transicion **AFND_obtener_tabla_transicion(AFND *AFND, int *n_estados)
                     }
                 }
 
-                if (condicion == 0 && estados_aux != NULL)
+                if (condicion == 0)
                 {
 
                     len_estados++;
@@ -379,12 +393,13 @@ int *get_estados_destino_with_lambdas(AFND *original, int *estado, int n_estados
 }
 
 /*Check Pending*/
-int anadir_estados_array(int *estados_ini, int *estados_extra)
+int anadir_estados_array(int **estados_ini, int *estados_extra)
 {
     int i, j, aux;
     int ret = 0;
     int no_contiene = 1;
     int estados_ini_aux, n_estados_extra;
+    int *estados_pointer = NULL;
 
     if (estados_ini == NULL || estados_extra == NULL)
     {
@@ -392,14 +407,14 @@ int anadir_estados_array(int *estados_ini, int *estados_extra)
     }
 
     /*Cogemos el numero de estados al principio y al final*/
-    for (i = 0; estados_ini[i] != -1; i++)
+    for (i = 0; (*estados_ini)[i] != -1; i++)
         ;
-    estados_ini_aux = i;
-    printf("estados_ini_aux = %d\n", estados_ini_aux);
+    estados_ini_aux = i + 1;
+    printf("estadosiniaux: %d\n", estados_ini_aux);
 
     for (i = 0; estados_extra[i] != -1; i++)
         ;
-    n_estados_extra = i;
+    n_estados_extra = i + 1;
 
     /*recorremos el conjunto de estados al final*/
     for (i = 0; i < n_estados_extra; i++)
@@ -409,7 +424,7 @@ int anadir_estados_array(int *estados_ini, int *estados_extra)
         for (j = 0; j < estados_ini_aux && no_contiene == 1; j++)
         {
             /*En el caso de que lo contenga no hay nada que hacer*/
-            if (estados_ini[j] == estados_extra[i])
+            if ((*estados_ini)[j] == estados_extra[i])
             {
                 no_contiene = 0;
             }
@@ -417,43 +432,42 @@ int anadir_estados_array(int *estados_ini, int *estados_extra)
         /*Si no lo contenia lo aniadimos*/
         if (no_contiene == 1)
         {
-
+            printf("estados_ini_aux = %d\n", estados_ini_aux);
             estados_ini_aux++;
-            estados_ini = realloc(estados_ini, estados_ini_aux * sizeof(int));
-            estados_ini[estados_ini_aux - 1] = estados_extra[i];
-            estados_ini[estados_ini_aux] = -1;
+            printf("estados_ini_aux = %d\n", estados_ini_aux);
+            estados_pointer = realloc((*estados_ini), estados_ini_aux * sizeof(int));
+            *estados_ini = estados_pointer;
+            (*estados_ini)[estados_ini_aux - 2] = estados_extra[i];
+            (*estados_ini)[estados_ini_aux - 1] = -1;
             ret++;
         }
 
         no_contiene = 1;
     }
-
+    printf("PRECOPIA\n");
+    for (i = 0; (*estados_ini)[i] != -1; i++)
+    {
+        printf("\n%d\n", (*estados_ini)[i]);
+    }
+    printf("FINITO\n");
     return ret;
 }
 
 /*Tira guay*/
 int *copiar_array(int *array_original)
 {
-    int i;
+    int i, size;
     int *new_array = NULL;
 
-    new_array = (int *)calloc(1, sizeof(int));
+    size = contar_array(array_original);
 
-    for (i = 0; array_original[i] != -1; i++)
+    new_array = (int *)calloc((size + 1), sizeof(int));
+
+    for (i = 0; i < size; i++)
     {
-        if (new_array == NULL)
-        {
-            new_array = (int *)calloc(1, sizeof(int));
-            new_array[i] = array_original[i];
-        }
-        else
-        {
-            new_array = realloc(new_array, (i + 1) * sizeof(int));
-            new_array[i] = array_original[i];
-        }
+        new_array[i] = array_original[i];
     }
 
-    new_array = realloc(new_array, (i + 1) * sizeof(int));
     new_array[i] = -1;
 
     return new_array;

@@ -8,7 +8,7 @@
 
 int main(int argc, char **argv)
 {
-    AFND *AFND, *AFND_aux, *determinista;
+    AFND *AFND, *determinista;
     AFND = AFNDNuevo("automata", 6, 3);
 
     /*Insertamos los simbolos*/
@@ -37,12 +37,12 @@ int main(int argc, char **argv)
     AFNDInsertaLTransicion(AFND, "q0", "q1");
     AFNDInsertaLTransicion(AFND, "q3", "q5");
 
-    AFND_aux = AFNDCierraLTransicion(AFND);
+    AFNDCierraLTransicion(AFND);
     AFNDImprimeConjuntoEstadosActual(stdout, AFND);
 
     determinista = AFND_convertir_a_determinista(AFND);
 
-    /*AFNDADot(determinista);*/
+    AFNDADot(determinista);
 
     /*transformacionEliminaLTransiciones(AFND);*/
 

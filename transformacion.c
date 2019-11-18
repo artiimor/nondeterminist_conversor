@@ -19,11 +19,10 @@ AFND *AFND_convertir_a_determinista(AFND *original)
 {
     transicion **tabla_transicion;
     int n_estados, n_simbolos, i, j, condicion_input, condicion_output;
-    int *input, *output;
     int tipo_input, tipo_output;
     char *nombre_input, *nombre_output, *nombre_simbolo;
     AFND *determinista;
-    int *estados_1, *estados_2;
+    /*int *estados_1, *estados_2;
 
     estados_1 = (int *)malloc(10 * sizeof(int));
     estados_1[0] = 1;
@@ -52,9 +51,7 @@ AFND *AFND_convertir_a_determinista(AFND *original)
     }
 
     free(estados_1);
-    free(estados_2);
-
-    return NULL;
+    free(estados_2); */
 
     n_simbolos = AFNDNumSimbolos(original);
 
@@ -72,10 +69,7 @@ AFND *AFND_convertir_a_determinista(AFND *original)
 
         condicion_input = 0;
         condicion_output = 0;
-        transicion_debug(original, tabla_transicion[i]);
 
-        input = transicion_get_input_states(tabla_transicion[i]);
-        output = transicion_get_output_states(tabla_transicion[i]);
         nombre_input = transicion_get_input_state_name(original, tabla_transicion[i]);
         nombre_output = transicion_get_output_state_name(original, tabla_transicion[i]);
         nombre_simbolo = AFNDSimboloEn(determinista, transicion_get_input_symbol(tabla_transicion[i]));
@@ -106,6 +100,8 @@ AFND *AFND_convertir_a_determinista(AFND *original)
 
         /*Solo queda añadir la transicion*/
         AFNDInsertaTransicion(determinista, nombre_input, nombre_simbolo, nombre_output);
+        free(nombre_input);
+        free(nombre_output);
     }
 
     /*free tabla_transicion*/
@@ -114,6 +110,7 @@ AFND *AFND_convertir_a_determinista(AFND *original)
         free(tabla_transicion[i]);
     }
     free(tabla_transicion);
+
     return determinista;
 }
 
@@ -149,7 +146,7 @@ transicion **AFND_obtener_tabla_transicion(AFND *AFND, int *n_estados)
     estados_pendientes = realloc(estados_pendientes, len_estados * sizeof(int *));
     estados_pendientes[len_estados - 2] = estados_ini;
     estados_pendientes[len_estados - 1] = NULL;
-
+    condicion = 0;
     /*Bucle principal*/
     while (estados_pendientes[estado_revisado] != NULL)
     {
@@ -176,14 +173,12 @@ transicion **AFND_obtener_tabla_transicion(AFND *AFND, int *n_estados)
                 {
                     if (is_content_equal(estados_aux, estados_pendientes[j]))
                     {
-
                         condicion = 1;
                     }
                 }
 
                 if (condicion == 0)
                 {
-
                     len_estados++;
                     estados_pendientes = realloc(estados_pendientes, len_estados * sizeof(int *));
                     estados_pendientes[len_estados - 2] = estados_aux;
@@ -196,6 +191,7 @@ transicion **AFND_obtener_tabla_transicion(AFND *AFND, int *n_estados)
 
     *n_estados = len_estados - 1;
 
+    free(estados_pendientes);
     return tabla_transicion;
 }
 
@@ -259,7 +255,7 @@ int *get_estados_destino(AFND *original, int *estado, int n_estados_compruebo, i
                 if (estados_final == NULL)
                 {
 
-                    estados_final = (int *)malloc(sizeof(int));
+                    estados_final = (int *)calloc(1, sizeof(int));
                     estados_final[n_estados] = j;
                     n_estados++;
                 }
@@ -347,13 +343,10 @@ int *get_lambda_transition(AFND *original, int estado_input)
 int *get_estados_destino_with_lambdas(AFND *original, int *estado, int n_estados_compruebo, int simbolo)
 {
 
-    int *estados_final = NULL; /*Los estados a los que transiciona*/
-    int estados_max;
     int *estados_output;
     int *estados_lambda_aux;
     int *estados_output_aux;
     int i, check_loop;
-    int count = 0;
 
     if (original == NULL || estado == NULL)
     {
@@ -374,28 +367,29 @@ int *get_estados_destino_with_lambdas(AFND *original, int *estado, int n_estados
         for (i = 0; estados_output_aux[i] != -1; i++)
         {
             estados_lambda_aux = get_lambda_transition(original, estados_output_aux[i]);
-            if (anadir_estados_array(estados_output, estados_lambda_aux) > 0)
+            if (anadir_estados_array(&estados_output, estados_lambda_aux) > 0)
             {
-                count = 1;
                 check_loop = 1;
             }
+            free(estados_lambda_aux);
         }
 
-        /*free(estados_output_aux);*/
         if (check_loop == 1)
         {
+            free(estados_output_aux);
             estados_output_aux = copiar_array(estados_output);
         }
 
     } while (check_loop == 1);
 
+    free(estados_output_aux);
     return estados_output;
 }
 
 /*Check Pending*/
 int anadir_estados_array(int **estados_ini, int *estados_extra)
 {
-    int i, j, aux;
+    int i, j;
     int ret = 0;
     int no_contiene = 1;
     int estados_ini_aux, n_estados_extra;
@@ -410,7 +404,6 @@ int anadir_estados_array(int **estados_ini, int *estados_extra)
     for (i = 0; (*estados_ini)[i] != -1; i++)
         ;
     estados_ini_aux = i + 1;
-    printf("estadosiniaux: %d\n", estados_ini_aux);
 
     for (i = 0; estados_extra[i] != -1; i++)
         ;
@@ -432,9 +425,7 @@ int anadir_estados_array(int **estados_ini, int *estados_extra)
         /*Si no lo contenia lo aniadimos*/
         if (no_contiene == 1)
         {
-            printf("estados_ini_aux = %d\n", estados_ini_aux);
             estados_ini_aux++;
-            printf("estados_ini_aux = %d\n", estados_ini_aux);
             estados_pointer = realloc((*estados_ini), estados_ini_aux * sizeof(int));
             *estados_ini = estados_pointer;
             (*estados_ini)[estados_ini_aux - 2] = estados_extra[i];
@@ -444,12 +435,7 @@ int anadir_estados_array(int **estados_ini, int *estados_extra)
 
         no_contiene = 1;
     }
-    printf("PRECOPIA\n");
-    for (i = 0; (*estados_ini)[i] != -1; i++)
-    {
-        printf("\n%d\n", (*estados_ini)[i]);
-    }
-    printf("FINITO\n");
+
     return ret;
 }
 

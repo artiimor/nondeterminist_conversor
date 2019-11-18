@@ -42,10 +42,12 @@ void transicion_free(transicion *transicion)
   if (transicion->input_states != NULL)
   {
     free(transicion->input_states);
+    transicion->input_states = NULL;
   }
   if (transicion->output_states != NULL)
   {
     free(transicion->output_states);
+    transicion->output_states = NULL;
   }
 
   free(transicion);
@@ -85,6 +87,7 @@ char *transicion_get_input_state_name(AFND *AFND, transicion *transicion)
   char *nombre_aux;
   int i = 0;
   int len_aux;
+  char* nombre_pointer;
 
   if (transicion == NULL || AFND == NULL || transicion->input_states == NULL)
   {
@@ -109,14 +112,13 @@ char *transicion_get_input_state_name(AFND *AFND, transicion *transicion)
     {
       /*Redimensionamos*/
       len_aux += strlen(nombre_aux);
-      nombre = realloc(nombre, len_aux * sizeof(char *));
+      nombre_pointer = realloc(nombre, len_aux * sizeof(char *));
+      nombre = nombre_pointer;
 
       /*añadimos la cadena*/
       strcat(nombre, nombre_aux);
     }
   }
-
-  printf("El nombre to guapo que le hemos puesto es: %s\n", nombre);
 
   return nombre;
 }
@@ -153,8 +155,6 @@ char *transicion_get_output_state_name(AFND *AFND, transicion *transicion)
       strcat(nombre, nombre_aux);
     
   }
-
-  printf("El nombre to guapo que le hemos puesto es: %s\n", nombre);
 
   return nombre;
 }

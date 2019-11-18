@@ -4,6 +4,7 @@
 
 #include "afnd.h"
 #include "transicion.h"
+#include "estado.h"
 #include "transformacion.h"
 
 /*Funciones de manipulacion de arrays de enteros*/
@@ -12,24 +13,87 @@ int anadir_estados_array(int *estados_ini, int *estados_extra);
 int *copiar_array(int *array_original);
 int contar_array(int *array_original);
 int is_content_equal(int *array_1, int *array_2);
+int n_estados_insertados = 0;
 
-AFND *AFND_convertir_a_determinista(AFND *original)
+AFND *AFND_convertir_a_determinista(AFND *original, AFND *determinista)
 {
-    AFND *determinista;
+    transicion **tabla_transicion;
+    int n_estados, n_simbolos, i, j, condicion_input, condicion_output;
+    int *input, *output;
+    int tipo_input, tipo_output;
+    char *nombre_input, *nombre_output, *nombre_simbolo;
 
     if (original == NULL)
     {
         return NULL;
     }
 
+    n_simbolos = AFNDNumSimbolos(original);
+
+    tabla_transicion = AFND_obtener_tabla_transicion(original, &n_estados);
+
+    for (i = 0; i < n_simbolos; i++)
+    {
+        AFNDInsertaSimbolo(determinista, AFNDSimboloEn(original, i));
+    }
+
+    /****************************************************************/
+    /******************************REVISADO**********************************/
+    /****************************************************************/
+
+    for (i = 0; tabla_transicion[i] != NULL; i++)
+    {
+
+        condicion_input = 0;
+        condicion_output = 0;
+        transicion_debug(original, tabla_transicion[i]);
+
+        input = transicion_get_input_states(tabla_transicion[i]);
+        output = transicion_get_output_states(tabla_transicion[i]);
+        nombre_input = transicion_get_input_state_name(original, tabla_transicion[i]);
+        nombre_output = transicion_get_output_state_name(original, tabla_transicion[i]);
+        nombre_simbolo = AFNDSimboloEn(determinista, transicion_get_input_symbol(tabla_transicion[i]));
+        tipo_input = transicion_get_input_state_type(original, tabla_transicion[i]);
+        tipo_output = transicion_get_output_state_type(original, tabla_transicion[i]);
+        /*añadimos los estados si no se encontraban antes*/
+        printf("SIMBOLO: %d\n",nombre_simbolo);
+        for (j = 0; j < n_estados_insertados; j++)
+        {
+            if (strcmp(nombre_input, AFNDNombreEstadoEn(determinista, j)) == 0)
+            {
+                printf("NOMBRE INPUT EXISTE%s %s\n", nombre_input);
+                condicion_input = 1;
+            }
+            if (strcmp(nombre_output, AFNDNombreEstadoEn(determinista, j)) == 0)
+            {
+                printf("NOMBRE OUTPUT EXISTE%s\n", nombre_output);
+                condicion_output = 1;
+            }
+        }
+        printf("HOLA MUNDO\n");
+        if (condicion_input == 0)
+        {
+            n_estados_insertados++;
+            AFNDInsertaEstado(determinista, nombre_input, tipo_input);
+        }
+        if (condicion_output == 0)
+        {
+            n_estados_insertados++;
+            AFNDInsertaEstado(determinista, nombre_output, tipo_output);
+        }
+
+        /*Solo queda añadir la transicion*/
+        AFNDInsertaTransicion(determinista, nombre_input, nombre_simbolo, nombre_output);
+    }
+    AFNDImprime(stdout, determinista);
     return determinista;
 }
 
-transicion *AFND_obtener_tabla_transicion(AFND *AFND)
+transicion **AFND_obtener_tabla_transicion(AFND *AFND, int *n_estados)
 {
     transicion **tabla_transicion; /*Array de transiciones*/
     transicion *transicion_aux;
-    int ini, index_aux, i, j, k, count, condicion, n_transiciones = 1;
+    int ini, i, j, count, condicion, n_transiciones = 1;
     int n_simbolos;
     int *estados_ini, *estados_aux; /*Arrays de estados*/
     int **estados_pendientes;       /*Array de estados a analizar*/
@@ -96,17 +160,13 @@ transicion *AFND_obtener_tabla_transicion(AFND *AFND)
                     estados_pendientes = realloc(estados_pendientes, len_estados * sizeof(int *));
                     estados_pendientes[len_estados - 2] = estados_aux;
                     estados_pendientes[len_estados - 1] = NULL;
-                    /*añadimos la transicion*/
                 }
             }
         }
         estado_revisado++;
     }
 
-    for (i = 0; tabla_transicion[i] != NULL; i++)
-    {
-        transicion_debug(AFND, tabla_transicion[i]);
-    }
+    *n_estados = len_estados - 1;
 
     return tabla_transicion;
 }
@@ -260,7 +320,6 @@ int *get_estados_destino_with_lambdas(AFND *original, int *estado, int n_estados
 {
 
     int *estados_final = NULL; /*Los estados a los que transiciona*/
-    int n_estados = 0;         /*El conjunto de estados que contiene*/
     int estados_max;
     int *estados_output;
     int *estados_lambda_aux;
@@ -360,7 +419,7 @@ int anadir_estados_array(int *estados_ini, int *estados_extra)
 /*Tira guay*/
 int *copiar_array(int *array_original)
 {
-    int i, aux;
+    int i;
     int *new_array = NULL;
 
     new_array = (int *)calloc(1, sizeof(int));
@@ -387,7 +446,7 @@ int *copiar_array(int *array_original)
 
 int contar_array(int *array_original)
 {
-    int count, i;
+    int count;
 
     if (array_original == NULL)
     {

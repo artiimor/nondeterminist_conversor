@@ -17,7 +17,6 @@
  */
 int AFNDContieneEstadoNombre(AFND *AFND, char *nombre);
 
-
 /**
  * devuelve un automata finito no determinista donde se han eliminado las transiciones lambda
  * 
@@ -61,7 +60,8 @@ int *get_lambda_transition(AFND *original, int estado_input);
  */
 int *get_estados_destino_with_lambdas(AFND *original, int *estado, int n_estados_compruebo, int simbolo);
 
-transicion *AFND_obtener_tabla_transicion(AFND *AFND);
+transicion **AFND_obtener_tabla_transicion(AFND *AFND, int *n_estados);
 
+AFND *AFND_convertir_a_determinista(AFND *original, AFND *determinista);
 
 #endif

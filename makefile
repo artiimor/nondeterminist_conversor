@@ -48,7 +48,7 @@ clean :
 	rm -rf *.pdf
 
 dot :
-	dot -Tpdf automata.dot -o automata.pdf
+	dot -Tpdf determinista.dot -o automata.pdf
 
 runv:
 	valgrind --leak-check=full ./main

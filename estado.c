@@ -68,10 +68,12 @@ void estado_calculate_name(estado *estado, AFND *AFND)
     {
         return;
     }
-
+printf("HOLA\n");
+    printf("%d\n",estado->estados[0]);
+    
     nombre_aux = AFNDNombreEstadoEn(AFND, estado->estados[i]);
     len_aux = strlen(nombre_aux);
-
+    
     /*nombre tiene el nombre del primer estado*/
     nombre = (char *)calloc(len_aux, sizeof(char *));
     strcpy(nombre, nombre_aux);

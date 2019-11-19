@@ -57,6 +57,7 @@ AFND *AFND_convertir_a_determinista(AFND *original)
 
     tabla_transicion = AFND_obtener_tabla_transicion(original, &n_estados);
 
+    printf("n estados: %d\n", n_estados);
     determinista = AFNDNuevo("determinista", n_estados, n_simbolos);
 
     for (i = 0; i < n_simbolos; i++)
@@ -108,10 +109,10 @@ AFND *AFND_convertir_a_determinista(AFND *original)
     /*Al primer estado no se transita*/
     free(transicion_get_input_states(tabla_transicion[0]));
     for (i = 0; tabla_transicion[i] != NULL; i++)
-    {   
+    {
         transicion_free(tabla_transicion[i]);
     }
-    
+
     free(tabla_transicion);
 
     return determinista;
@@ -187,12 +188,22 @@ transicion **AFND_obtener_tabla_transicion(AFND *AFND, int *n_estados)
                     estados_pendientes[len_estados - 2] = estados_aux;
                     estados_pendientes[len_estados - 1] = NULL;
                 }
+                else if (j-1 == estado_revisado)
+                {
+                    printf("PRUEBACION\n");
+                    free(estados_aux);
+                    free(tabla_transicion[n_transiciones-2]);
+                    transicion_aux = transicion_new(estados_pendientes[j-1], i, estados_pendientes[j-1]);
+                    
+                    tabla_transicion[n_transiciones - 2] = transicion_aux;
+                }
             }
         }
         estado_revisado++;
     }
-    *n_estados = len_estados - 1;
-    
+    printf("len_estados = %d\n", estado_revisado);
+    *n_estados = estado_revisado;
+
     free(estados_pendientes);
     return tabla_transicion;
 }
@@ -338,7 +349,6 @@ int *get_lambda_transition(AFND *original, int estado_input)
     n_estados++;
     estados_final = realloc(estados_final, n_estados * sizeof(int));
     estados_final[n_estados - 1] = -1;
-
 
     return estados_final;
 }

@@ -39,7 +39,7 @@ void transicion_free(transicion *transicion)
     return;
   }
 
-  if (transicion->output_states != NULL)
+  if (transicion->output_states != NULL && transicion->output_states != transicion->input_states)
   {
     free(transicion->output_states);
     transicion->output_states = NULL;

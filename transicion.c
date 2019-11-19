@@ -39,11 +39,6 @@ void transicion_free(transicion *transicion)
     return;
   }
 
-  if (transicion->input_states != NULL)
-  {
-    free(transicion->input_states);
-    transicion->input_states = NULL;
-  }
   if (transicion->output_states != NULL)
   {
     free(transicion->output_states);

@@ -104,11 +104,14 @@ AFND *AFND_convertir_a_determinista(AFND *original)
         free(nombre_output);
     }
 
-    /*free tabla_transicion*/
+    /*Liberamos la tabla de transiciones*/
+    /*Al primer estado no se transita*/
+    free(transicion_get_input_states(tabla_transicion[0]));
     for (i = 0; tabla_transicion[i] != NULL; i++)
-    {
-        free(tabla_transicion[i]);
+    {   
+        transicion_free(tabla_transicion[i]);
     }
+    
     free(tabla_transicion);
 
     return determinista;
@@ -188,9 +191,8 @@ transicion **AFND_obtener_tabla_transicion(AFND *AFND, int *n_estados)
         }
         estado_revisado++;
     }
-
     *n_estados = len_estados - 1;
-
+    
     free(estados_pendientes);
     return tabla_transicion;
 }
@@ -336,6 +338,7 @@ int *get_lambda_transition(AFND *original, int estado_input)
     n_estados++;
     estados_final = realloc(estados_final, n_estados * sizeof(int));
     estados_final[n_estados - 1] = -1;
+
 
     return estados_final;
 }

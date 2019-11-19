@@ -22,42 +22,11 @@ AFND *AFND_convertir_a_determinista(AFND *original)
     int tipo_input, tipo_output;
     char *nombre_input, *nombre_output, *nombre_simbolo;
     AFND *determinista;
-    /*int *estados_1, *estados_2;
-
-    estados_1 = (int *)malloc(10 * sizeof(int));
-    estados_1[0] = 1;
-    estados_1[1] = 2;
-    estados_1[2] = 3;
-    estados_1[3] = 4;
-    estados_1[4] = 5;
-    estados_1[5] = 6;
-    estados_1[6] = 7;
-    estados_1[7] = 8;
-    estados_1[8] = 9;
-    estados_1[9] = -1;
-
-    estados_2 = (int *)malloc(5 * sizeof(int));
-    estados_2[0] = 10;
-    estados_2[1] = 2;
-    estados_2[2] = 23;
-    estados_2[3] = 4;
-    estados_2[4] = -1;
-
-    anadir_estados_array(&estados_1, estados_2);
-
-    for (i = 0; estados_1[i] != -1; i++)
-    {
-        printf("\n%d\n", estados_1[i]);
-    }
-
-    free(estados_1);
-    free(estados_2); */
 
     n_simbolos = AFNDNumSimbolos(original);
 
     tabla_transicion = AFND_obtener_tabla_transicion(original, &n_estados);
 
-    printf("n estados: %d\n", n_estados);
     determinista = AFNDNuevo("determinista", n_estados, n_simbolos);
 
     for (i = 0; i < n_simbolos; i++)
@@ -190,7 +159,6 @@ transicion **AFND_obtener_tabla_transicion(AFND *AFND, int *n_estados)
                 }
                 else if (j-1 == estado_revisado)
                 {
-                    printf("PRUEBACION\n");
                     free(estados_aux);
                     free(tabla_transicion[n_transiciones-2]);
                     transicion_aux = transicion_new(estados_pendientes[j-1], i, estados_pendientes[j-1]);
@@ -201,7 +169,6 @@ transicion **AFND_obtener_tabla_transicion(AFND *AFND, int *n_estados)
         }
         estado_revisado++;
     }
-    printf("len_estados = %d\n", estado_revisado);
     *n_estados = estado_revisado;
 
     free(estados_pendientes);

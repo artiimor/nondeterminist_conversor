@@ -42,6 +42,7 @@ int main(int argc, char **argv)
 
     determinista = AFND_convertir_a_determinista(AFND);
 
+    AFNDADot(AFND);
     AFNDADot(determinista);
 
     /*transformacionEliminaLTransiciones(AFND);*/

@@ -52,4 +52,4 @@ dot :
 	dot -Tpdf automata.dot -o no_determinista.pdf
 
 runv:
-	valgrind --leak-check=full --track-origins=yes ./main
+	valgrind --leak-check=full --track-origins=yes -v ./main

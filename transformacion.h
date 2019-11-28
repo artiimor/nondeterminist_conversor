@@ -64,4 +64,6 @@ transicion **AFND_obtener_tabla_transicion(AFND *AFND, int *n_estados);
 
 AFND *AFND_convertir_a_determinista(AFND *original);
 
+int *get_estados_accesibles(AFND *original);
+
 #endif

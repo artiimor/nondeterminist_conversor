@@ -9,47 +9,61 @@
 int main(int argc, char **argv)
 {
     AFND *AFND, *determinista;
-    AFND = AFNDNuevo("automata", 6, 3);
+    AFND = AFNDNuevo("automata", 8, 2);
+    int i;
+    int *accesibles;
 
     /*Insertamos los simbolos*/
-    AFNDInsertaSimbolo(AFND, "+");
     AFNDInsertaSimbolo(AFND, "0");
-    AFNDInsertaSimbolo(AFND, ".");
+    AFNDInsertaSimbolo(AFND, "1");
 
     /*Insertamos los estados*/
-    AFNDInsertaEstado(AFND, "q0", INICIAL);
-    AFNDInsertaEstado(AFND, "q1", NORMAL);
-    AFNDInsertaEstado(AFND, "q2", NORMAL);
-    AFNDInsertaEstado(AFND, "q3", NORMAL);
-    AFNDInsertaEstado(AFND, "q4", NORMAL);
-    AFNDInsertaEstado(AFND, "q5", FINAL);
+    AFNDInsertaEstado(AFND, "A", INICIAL);
+    AFNDInsertaEstado(AFND, "B", NORMAL);
+    AFNDInsertaEstado(AFND, "D", NORMAL);
+    AFNDInsertaEstado(AFND, "E", NORMAL);
+    AFNDInsertaEstado(AFND, "F", NORMAL);
+    AFNDInsertaEstado(AFND, "G", NORMAL);
+    AFNDInsertaEstado(AFND, "H", NORMAL);
+    AFNDInsertaEstado(AFND, "C", FINAL);
 
     /*insertamos las transiciones normales*/
-    AFNDInsertaTransicion(AFND, "q0", "+", "q1");
-    AFNDInsertaTransicion(AFND, "q1", ".", "q2");
-    AFNDInsertaTransicion(AFND, "q1", "0", "q1");
-    AFNDInsertaTransicion(AFND, "q1", "0", "q4");
-    AFNDInsertaTransicion(AFND, "q2", "0", "q3");
-    AFNDInsertaTransicion(AFND, "q4", ".", "q3");
-    AFNDInsertaTransicion(AFND, "q3", "0", "q3");
+    AFNDInsertaTransicion(AFND, "A", "0", "B");
+    AFNDInsertaTransicion(AFND, "A", "1", "F");
+    AFNDInsertaTransicion(AFND, "B", "0", "G");
+    AFNDInsertaTransicion(AFND, "B", "1", "C");
+    AFNDInsertaTransicion(AFND, "C", "1", "C");
+    AFNDInsertaTransicion(AFND, "C", "0", "A");
+    AFNDInsertaTransicion(AFND, "D", "0", "C");
+    AFNDInsertaTransicion(AFND, "D", "1", "G");
+    AFNDInsertaTransicion(AFND, "E", "0", "H");
+    AFNDInsertaTransicion(AFND, "E", "1", "F");
+    AFNDInsertaTransicion(AFND, "F", "0", "C");
+    AFNDInsertaTransicion(AFND, "F", "1", "G");
+    AFNDInsertaTransicion(AFND, "G", "0", "G");
+    AFNDInsertaTransicion(AFND, "G", "1", "E");
+    AFNDInsertaTransicion(AFND, "H", "0", "G");
+    AFNDInsertaTransicion(AFND, "H", "1", "C");
 
     /*Insertamos las transiciones lambda*/
-    AFNDInsertaLTransicion(AFND, "q0", "q1");
-    AFNDInsertaLTransicion(AFND, "q3", "q5");
 
-    AFNDCierraLTransicion(AFND);
-    AFNDImprimeConjuntoEstadosActual(stdout, AFND);
-
-    determinista = AFND_convertir_a_determinista(AFND);
+    /*determinista = AFND_convertir_a_determinista(AFND);
 
     AFNDADot(AFND);
-    AFNDADot(determinista);
+    AFNDADot(determinista);*/
 
-    /*transformacionEliminaLTransiciones(AFND);*/
+
+    accesibles = get_estados_accesibles(AFND);
+
+    for (i = 0; accesibles[i] != -1; i++)
+    {
+        printf("%s\n", AFNDNombreEstadoEn(AFND, accesibles[i]));
+    }
 
     AFNDElimina(AFND);
-    AFNDElimina(determinista);
+    free(accesibles);
 
     printf("CHECK FINAL\n");
+
     return 0;
 }

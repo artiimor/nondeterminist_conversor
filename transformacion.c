@@ -157,12 +157,12 @@ transicion **AFND_obtener_tabla_transicion(AFND *AFND, int *n_estados)
                     estados_pendientes[len_estados - 2] = estados_aux;
                     estados_pendientes[len_estados - 1] = NULL;
                 }
-                else if (j-1 == estado_revisado)
+                else if (j - 1 == estado_revisado)
                 {
                     free(estados_aux);
-                    free(tabla_transicion[n_transiciones-2]);
-                    transicion_aux = transicion_new(estados_pendientes[j-1], i, estados_pendientes[j-1]);
-                    
+                    free(tabla_transicion[n_transiciones - 2]);
+                    transicion_aux = transicion_new(estados_pendientes[j - 1], i, estados_pendientes[j - 1]);
+
                     tabla_transicion[n_transiciones - 2] = transicion_aux;
                 }
             }
@@ -173,6 +173,71 @@ transicion **AFND_obtener_tabla_transicion(AFND *AFND, int *n_estados)
 
     free(estados_pendientes);
     return tabla_transicion;
+}
+
+/*TODO quitar esta funcion*/
+int *get_estados_accesibles(AFND *original)
+{
+    int i, j;
+    int ini, n_simbolos, len_accesibles;
+    int *estados_accesibles, *estados_aux;
+    /*int *estados_inaccesibles = NULL;
+    int n_estados, len_inaccesibles = 0;*/
+
+    if (original == NULL)
+    {
+        return NULL;
+    }
+
+    n_simbolos = AFNDNumSimbolos(original);
+    
+
+    /*Los estados iniciales son accesibles seguro*/
+    ini = AFNDIndiceEstadoInicial(original);
+    estados_accesibles = get_lambda_transition(original, ini);
+
+    /*TODO revisar*/
+    for (i = 0; estados_accesibles[i] != -1; i++)
+        ;
+    len_accesibles = i;
+
+    /*Comprobamos los estados accesibles*/
+    /*Cuando termina el bucle, estados_accesibles contiene todos los estados a los que podemos acceder*/
+    for (i = 0; estados_accesibles[i] != -1; i++)
+    {
+        for (j = 0; j < n_simbolos; j++)
+        {
+            estados_aux = get_estados_destino_with_lambdas(original, estados_accesibles, len_accesibles, j);
+            len_accesibles += anadir_estados_array(&estados_accesibles, estados_aux);
+            free(estados_aux);
+        }
+    }
+
+    return estados_accesibles;
+
+    /*estados accesibles contiene los estados accesibles, los inaccesibles son los demas*/
+    /* Este bucle cogía los estados inaccesibles. En desuso
+    n_estados = AFNDNumEstados(original);
+    for (i = 0; i < n_estados; i++)
+    {
+        if (isInArrayEstados(estados_accesibles, i, len_accesibles) == 0)
+        {
+            if (estados_inaccesibles == NULL)
+            {
+                len_inaccesibles = 2;
+                estados_inaccesibles = (int *)calloc(len_inaccesibles, sizeof(int));
+                estados_inaccesibles[0] = i;
+                estados_inaccesibles[1] = -1;
+            }
+            else
+            {
+                len_inaccesibles++;
+                estados_inaccesibles = realloc(estados_inaccesibles, len_inaccesibles * sizeof(int *));
+                estados_inaccesibles[len_inaccesibles - 2] = i;
+                estados_inaccesibles[len_inaccesibles - 1] = NULL;
+            }
+        }
+    } */
 }
 
 int isInArrayEstados(int *arrayEstados, int number, int tamano)
@@ -415,7 +480,6 @@ int anadir_estados_array(int **estados_ini, int *estados_extra)
 
         no_contiene = 1;
     }
-
     return ret;
 }
 

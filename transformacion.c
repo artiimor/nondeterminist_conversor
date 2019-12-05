@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "conjunto.h"
 #include "afnd.h"
 #include "transicion.h"
 #include "transformacion.h"
@@ -174,6 +175,22 @@ transicion **AFND_obtener_tabla_transicion(AFND *AFND, int *n_estados)
     return tabla_transicion;
 }
 
+conjunto *get_subconjuntos(conjunto *conjunto, AFND *afnd)
+{
+    conjunto *subconjuntos;
+    int size, i = 0;
+
+    if (conjunto == NULL || afnd == NULL)
+    {
+        return NULL;
+    }
+
+    size = AFNDNumEstados(afnd);
+
+    /*Reservamos memoria para cada subcojunto posible(no será mayor que el número de estados)*/
+    subconjuntos = (conjunto*)calloc(size, sizeof(conjunto));
+}
+
 /*TODO quitar esta funcion*/
 int *get_estados_accesibles(AFND *original)
 {
@@ -327,7 +344,7 @@ int *get_estados_destino(AFND *original, int *estado, int n_estados_compruebo, i
     estados_final[n_estados - 1] = -1;
 
     printf("HOLA\n");
-    printf("estados final = %d\n",estados_final[0]);
+    printf("estados final = %d\n", estados_final[0]);
 
     return estados_final;
 }
@@ -448,7 +465,7 @@ int comprobar_distinguibles(AFND *original, int **matriz, int estado_1, int esta
     /*Vemos la transicion de los estados por cada simbolo del automata*/
     for (i = 0; i < n_simbolos; i++)
     {
-        printf("%d\n",aux[0]);
+        printf("%d\n", aux[0]);
         aux = get_estados_destino(original, &estado_1, 1, i);
         transicion_1 = aux[0];
         free(aux);
@@ -456,10 +473,10 @@ int comprobar_distinguibles(AFND *original, int **matriz, int estado_1, int esta
         aux = get_estados_destino(original, &estado_2, 1, i);
         transicion_2 = aux[0];
         free(aux);
-        
 
         /*Si el resultado es distinguible, entonces los estados son distinguibles*/
-        if (matriz[estado_1][transicion_1] != matriz[estado_2][transicion_2]){
+        if (matriz[estado_1][transicion_1] != matriz[estado_2][transicion_2])
+        {
             matriz[estado_1][estado_2] = 1;
             matriz[estado_2][estado_1] = 1;
             return 1;

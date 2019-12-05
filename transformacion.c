@@ -4,7 +4,6 @@
 
 #include "afnd.h"
 #include "transicion.h"
-#include "estado.h"
 #include "transformacion.h"
 
 /*Funciones de manipulacion de arrays de enteros*/
@@ -190,7 +189,6 @@ int *get_estados_accesibles(AFND *original)
     }
 
     n_simbolos = AFNDNumSimbolos(original);
-    
 
     /*Los estados iniciales son accesibles seguro*/
     ini = AFNDIndiceEstadoInicial(original);
@@ -323,11 +321,13 @@ int *get_estados_destino(AFND *original, int *estado, int n_estados_compruebo, i
     {
         return NULL;
     }
-
     /*Para recorrer el bucle luego*/
     n_estados++;
     estados_final = realloc(estados_final, n_estados * sizeof(int));
     estados_final[n_estados - 1] = -1;
+
+    printf("HOLA\n");
+    printf("estados final = %d\n",estados_final[0]);
 
     return estados_final;
 }
@@ -429,6 +429,45 @@ int *get_estados_destino_with_lambdas(AFND *original, int *estado, int n_estados
 
     free(estados_output_aux);
     return estados_output;
+}
+
+int comprobar_distinguibles(AFND *original, int **matriz, int estado_1, int estado_2)
+{
+    int transicion_1, transicion_2;
+    int n_simbolos;
+    int i;
+    int *aux;
+
+    if (original == NULL || matriz == NULL || estado_1 < 0 || estado_2 < 0)
+    {
+        return -1;
+    }
+
+    n_simbolos = AFNDNumSimbolos(original);
+
+    /*Vemos la transicion de los estados por cada simbolo del automata*/
+    for (i = 0; i < n_simbolos; i++)
+    {
+        printf("%d\n",aux[0]);
+        aux = get_estados_destino(original, &estado_1, 1, i);
+        transicion_1 = aux[0];
+        free(aux);
+
+        aux = get_estados_destino(original, &estado_2, 1, i);
+        transicion_2 = aux[0];
+        free(aux);
+        
+
+        /*Si el resultado es distinguible, entonces los estados son distinguibles*/
+        if (matriz[estado_1][transicion_1] != matriz[estado_2][transicion_2]){
+            matriz[estado_1][estado_2] = 1;
+            matriz[estado_2][estado_1] = 1;
+            return 1;
+        }
+    }
+
+    /*Si no ha saltado en el bucle, entonces son indistinguibles*/
+    return 0;
 }
 
 /*Check Pending*/

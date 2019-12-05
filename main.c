@@ -3,15 +3,15 @@
 #include <string.h>
 
 #include "afnd.h"
-#include "estado.h"
 #include "transformacion.h"
 
 int main(int argc, char **argv)
 {
     AFND *AFND, *determinista;
     AFND = AFNDNuevo("automata", 8, 2);
-    int i;
+    int i, j;
     int *accesibles;
+    int **matriz;
 
     /*Insertamos los simbolos*/
     AFNDInsertaSimbolo(AFND, "0");
@@ -20,12 +20,12 @@ int main(int argc, char **argv)
     /*Insertamos los estados*/
     AFNDInsertaEstado(AFND, "A", INICIAL);
     AFNDInsertaEstado(AFND, "B", NORMAL);
+    AFNDInsertaEstado(AFND, "C", FINAL);
     AFNDInsertaEstado(AFND, "D", NORMAL);
     AFNDInsertaEstado(AFND, "E", NORMAL);
     AFNDInsertaEstado(AFND, "F", NORMAL);
     AFNDInsertaEstado(AFND, "G", NORMAL);
     AFNDInsertaEstado(AFND, "H", NORMAL);
-    AFNDInsertaEstado(AFND, "C", FINAL);
 
     /*insertamos las transiciones normales*/
     AFNDInsertaTransicion(AFND, "A", "0", "B");
@@ -52,16 +52,40 @@ int main(int argc, char **argv)
     AFNDADot(AFND);
     AFNDADot(determinista);*/
 
-
-    accesibles = get_estados_accesibles(AFND);
-
-    for (i = 0; accesibles[i] != -1; i++)
+    matriz = (int **)calloc(8, sizeof(int *));
+    for (i = 0; i < 8; i++)
     {
-        printf("%s\n", AFNDNombreEstadoEn(AFND, accesibles[i]));
+        matriz[i] = (int *)calloc(8, sizeof(int));
+    }
+    for (i = 0; i < 8; i++)
+    {
+        for (j = 0; j < 8; j++)
+        {
+            if (AFNDTipoEstadoEn(AFND, i) == FINAL || AFNDTipoEstadoEn(AFND, j) == FINAL)
+            {
+                matriz[i][j] = 1;
+            }
+        }
+    }
+
+    printf("RETORNO: %d\n",comprobar_distinguibles(AFND, matriz, 0, 3));
+
+    for (i = 0; i < 8; i++)
+    {
+        for (j = 0; j < 8; j++)
+        {
+            printf("|%d ", matriz[i][j]);
+        }
+        printf("\n");
     }
 
     AFNDElimina(AFND);
-    free(accesibles);
+
+    for (i = 0; i < 8; i++)
+    {
+         free(matriz[i]);
+    }
+    free(matriz);
 
     printf("CHECK FINAL\n");
 

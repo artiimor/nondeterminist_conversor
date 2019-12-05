@@ -6,12 +6,12 @@ all : $(EXE)
 
 .PHONY : clean	
 
-$(EXE) : % : %.o afnd.o transformacion.o estado.o transicion.o
+$(EXE) : % : %.o afnd.o transformacion.o transicion.o
 	@echo "#---------------------------"
 	@echo "# Generando $@ "
 	@echo "# Depende de $^"
 	@echo "# Ha cambiado $<"
-	$(CC) $(CFLAGS) -o $@ $@.o afnd.o transformacion.o estado.o transicion.o
+	$(CC) $(CFLAGS) -o $@ $@.o afnd.o transformacion.o transicion.o conjunto.o
 
 afnd.o : afnd.c afnd.h
 	@echo "#---------------------------"
@@ -20,7 +20,7 @@ afnd.o : afnd.c afnd.h
 	@echo "# Ha cambiado $<"
 	$(CC) $(CFLAGS) -c $<
 
-transformacion.o : transformacion.c transformacion.h transicion.h afnd.h
+transformacion.o : transformacion.c transformacion.h transicion.h conjunto.h afnd.h
 	@echo "#---------------------------"
 	@echo "# Generando $@"
 	@echo "# Depende de $^"
@@ -34,7 +34,7 @@ transicion.o : transicion.c transicion.h afnd.h
 	@echo "# Ha cambiado $<"
 	$(CC) $(CFLAGS) -c $<
 
-estado.o : estado.c estado.h afnd.h
+conjunto.o : conjunto.c conjunto.h
 	@echo "#---------------------------"
 	@echo "# Generando $@"
 	@echo "# Depende de $^"

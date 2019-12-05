@@ -64,6 +64,19 @@ transicion **AFND_obtener_tabla_transicion(AFND *AFND, int *n_estados);
 
 AFND *AFND_convertir_a_determinista(AFND *original);
 
+/**
+ * Comprueba si dos estados son distinguibles teniendo de antemano la matriz. Tambien
+ * modifica la matriz en funcion de si son distinguibles o no
+ * 
+ * @param original el automata que vamos a convertir
+ * @param matriz la matriz que verifica si los estados son distinguibles o no
+ * @param estado_1 el primer estado a comprobar
+ * @param estado_2 el segundo estado a comprobar
+ * 
+ * @return 0 si no son distinguibles, 1 si lo son o -1 si ha ocurrido algun error
+ */
+int comprobar_distinguibles(AFND *original, int **matriz, int estado_1, int estado_2);
+
 int *get_estados_accesibles(AFND *original);
 
 #endif

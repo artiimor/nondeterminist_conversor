@@ -74,4 +74,6 @@ void conjunto_set_cantidad(conjunto *conjunto, int nueva_cantidad);
 
 void conjunto_eliminar_estado(conjunto *conjunto, int estado);
 
+void conjunto_add_estado(conjunto *conjunto, int new_estado);
+
 #endif

@@ -175,20 +175,47 @@ transicion **AFND_obtener_tabla_transicion(AFND *AFND, int *n_estados)
     return tabla_transicion;
 }
 
-conjunto *get_subconjuntos(conjunto *conjunto, AFND *afnd)
+conjunto *get_subconjuntos(conjunto *conjunto_ini, AFND *afnd, int **matriz)
 {
-    conjunto *subconjuntos;
-    int size, i = 0;
+    conjunto **subconjuntos;
+    int size, i, j;
+    int *estados;
+    int check;
+    int n_subconjuntos;
 
-    if (conjunto == NULL || afnd == NULL)
+    if (conjunto_ini == NULL || afnd == NULL || matriz == NULL)
     {
         return NULL;
     }
 
-    size = AFNDNumEstados(afnd);
-
     /*Reservamos memoria para cada subcojunto posible(no será mayor que el número de estados)*/
-    subconjuntos = (conjunto*)calloc(size, sizeof(conjunto));
+
+    /*Cantidad de estados en el conjunto inicial. Para el bucle*/
+    size = conjunto_get_cantidad(conjunto_ini);
+
+    printf("\n\nSIZE = %d\n\n",size);
+
+    for (i = 0; i < size; i++)
+    {
+        for (j = i + 1; j < size; j++)
+        {
+            check = comprobar_distinguibles(afnd, matriz, i, j);
+            if (check == 1){
+                printf("LOS ESTADOS %s y %s son distinguibles\n",AFNDNombreEstadoEn(afnd, i),AFNDNombreEstadoEn(afnd, j));
+            }
+        }
+    }
+
+    for (i = 0; i < size; i++)
+    {
+        for (j = 0; j < size; j++)
+        {
+            printf("|%d ", matriz[i][j]);
+        }
+        printf("\n");
+    }
+
+    return NULL;
 }
 
 /*TODO quitar esta funcion*/
@@ -343,9 +370,10 @@ int *get_estados_destino(AFND *original, int *estado, int n_estados_compruebo, i
     estados_final = realloc(estados_final, n_estados * sizeof(int));
     estados_final[n_estados - 1] = -1;
 
+    /*
     printf("HOLA\n");
     printf("estados final = %d\n", estados_final[0]);
-
+    */
     return estados_final;
 }
 
@@ -465,7 +493,6 @@ int comprobar_distinguibles(AFND *original, int **matriz, int estado_1, int esta
     /*Vemos la transicion de los estados por cada simbolo del automata*/
     for (i = 0; i < n_simbolos; i++)
     {
-        printf("%d\n", aux[0]);
         aux = get_estados_destino(original, &estado_1, 1, i);
         transicion_1 = aux[0];
         free(aux);
@@ -473,9 +500,13 @@ int comprobar_distinguibles(AFND *original, int **matriz, int estado_1, int esta
         aux = get_estados_destino(original, &estado_2, 1, i);
         transicion_2 = aux[0];
         free(aux);
+        
+        printf("El estado transitado por %s es %s\n",AFNDNombreEstadoEn(original, estado_1), AFNDNombreEstadoEn(original,transicion_1));
+        printf("El estado transitado por %s es %s\n",AFNDNombreEstadoEn(original, estado_2), AFNDNombreEstadoEn(original,transicion_2));
+        printf("En la matriz pone un %d de puta madre\n",matriz[transicion_1][transicion_2]);
 
         /*Si el resultado es distinguible, entonces los estados son distinguibles*/
-        if (matriz[estado_1][transicion_1] != matriz[estado_2][transicion_2])
+        if (matriz[transicion_1][transicion_2] == 1)
         {
             matriz[estado_1][estado_2] = 1;
             matriz[estado_2][estado_1] = 1;

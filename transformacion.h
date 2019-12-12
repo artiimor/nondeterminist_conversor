@@ -6,6 +6,7 @@
 
 #include "afnd.h"
 #include "transicion.h"
+#include "conjunto.h"
 
 /**
  * Comprueba si un automata tiene un estado con el nombre introducido
@@ -78,5 +79,7 @@ AFND *AFND_convertir_a_determinista(AFND *original);
 int comprobar_distinguibles(AFND *original, int **matriz, int estado_1, int estado_2);
 
 int *get_estados_accesibles(AFND *original);
+
+conjunto *get_subconjuntos(conjunto *conjunto_ini, AFND *afnd, int **matriz);
 
 #endif

@@ -4,6 +4,7 @@
 
 #include "afnd.h"
 #include "transformacion.h"
+#include "conjunto.h"
 
 int main(int argc, char **argv)
 {
@@ -12,6 +13,20 @@ int main(int argc, char **argv)
     int i, j;
     int *accesibles;
     int **matriz;
+    int array[2];
+
+    array[0] = 0;
+    array[1] = -1;
+    conjunto *conjunto_aux;
+
+    conjunto_aux = new_conjunto(array);
+    conjunto_add_estado(conjunto_aux, 1);
+    conjunto_add_estado(conjunto_aux, 2);
+    conjunto_add_estado(conjunto_aux, 3);
+    conjunto_add_estado(conjunto_aux, 4);
+    conjunto_add_estado(conjunto_aux, 5);
+    conjunto_add_estado(conjunto_aux, 6);
+    conjunto_add_estado(conjunto_aux, 7);
 
     /*Insertamos los simbolos*/
     AFNDInsertaSimbolo(AFND, "0");
@@ -68,7 +83,7 @@ int main(int argc, char **argv)
         }
     }
 
-    printf("RETORNO: %d\n",comprobar_distinguibles(AFND, matriz, 0, 3));
+    matriz[2][2] = 0;
 
     for (i = 0; i < 8; i++)
     {
@@ -79,11 +94,27 @@ int main(int argc, char **argv)
         printf("\n");
     }
 
+    get_subconjuntos(conjunto_aux, AFND, matriz);
+    get_subconjuntos(conjunto_aux, AFND, matriz);
+    get_subconjuntos(conjunto_aux, AFND, matriz);
+
+    for (i = 0; i < 8; i++)
+    {
+        for (j = i+1; j < 8; j++)
+        {
+            if (matriz[i][j] == 0 && i != j)
+            {
+                printf("LOS ESTADOS %s y %s estan juntitos de puta madre\n", AFNDNombreEstadoEn(AFND, i), AFNDNombreEstadoEn(AFND, j));
+            }
+        }
+        printf("\n");
+    }
+
     AFNDElimina(AFND);
 
     for (i = 0; i < 8; i++)
     {
-         free(matriz[i]);
+        free(matriz[i]);
     }
     free(matriz);
 

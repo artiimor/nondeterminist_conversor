@@ -23,7 +23,7 @@ conjunto *new_conjunto(int *estados)
     for (size = 0; estados[size] != -1; size++)
         ;
 
-    nuevos_estados = (int *)calloc(i, sizeof(int));
+    nuevos_estados = (int *)calloc(size, sizeof(int));
 
     for (i = 0; i < size; i++)
     {
@@ -63,7 +63,7 @@ int *conjunto_get_estados(conjunto *conjunto)
 {
     if (conjunto == NULL)
     {
-        return -1;
+        return NULL;
     }
     return conjunto->estados;
 }
@@ -118,6 +118,20 @@ void conjunto_eliminar_estado(conjunto *conjunto, int estado)
 
     conjunto_set_estados(conjunto, nuevos_estados);
     conjunto_set_cantidad(conjunto, size - 1);
+
+    return;
+}
+
+void conjunto_add_estado(conjunto *conjunto, int new_estado)
+{
+    if (conjunto == NULL || new_estado < 0)
+    {
+        return;
+    }
+
+    conjunto->cantidad++;
+    conjunto->estados = realloc(conjunto->estados, conjunto->cantidad * sizeof(int *));
+    conjunto->estados[conjunto->cantidad] = new_estado;
 
     return;
 }

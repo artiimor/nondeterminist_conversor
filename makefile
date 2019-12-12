@@ -6,7 +6,7 @@ all : $(EXE)
 
 .PHONY : clean	
 
-$(EXE) : % : %.o afnd.o transformacion.o transicion.o
+$(EXE) : % : %.o afnd.o transformacion.o transicion.o conjunto.o
 	@echo "#---------------------------"
 	@echo "# Generando $@ "
 	@echo "# Depende de $^"

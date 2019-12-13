@@ -71,9 +71,14 @@ void conjunto_set_cantidad(conjunto *conjunto, int nueva_cantidad);
   * @param el estado que vamos a eliminar del conjunto
   *         (suponemos que se encuentra en el conjunto)
   */
-
 void conjunto_eliminar_estado(conjunto *conjunto, int estado);
 
+/**
+  * Le añade un estado al subconjunto
+  * 
+  * @param conjunto el conjunto a modificar
+  * @param el estado que vamos a añadir al conjunto
+  */
 void conjunto_add_estado(conjunto *conjunto, int new_estado);
 
 #endif

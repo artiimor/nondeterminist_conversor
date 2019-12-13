@@ -94,9 +94,7 @@ int main(int argc, char **argv)
         printf("\n");
     }
 
-    get_subconjuntos(conjunto_aux, AFND, matriz);
-    get_subconjuntos(conjunto_aux, AFND, matriz);
-    get_subconjuntos(conjunto_aux, AFND, matriz);
+    calcular_matriz(AFND, matriz);
 
     for (i = 0; i < 8; i++)
     {
@@ -110,6 +108,15 @@ int main(int argc, char **argv)
         printf("\n");
     }
 
+    for (i = 0; i < 8; i++)
+    {
+        for (j = 0; j < 8; j++)
+        {
+            printf("|%d ", matriz[i][j]);
+        }
+        printf("\n");
+    }
+
     AFNDElimina(AFND);
 
     for (i = 0; i < 8; i++)
@@ -117,6 +124,8 @@ int main(int argc, char **argv)
         free(matriz[i]);
     }
     free(matriz);
+
+    free_conjunto(conjunto_aux);
 
     printf("CHECK FINAL\n");
 

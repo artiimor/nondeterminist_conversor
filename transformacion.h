@@ -78,8 +78,23 @@ AFND *AFND_convertir_a_determinista(AFND *original);
  */
 int comprobar_distinguibles(AFND *original, int **matriz, int estado_1, int estado_2);
 
+/**
+ * Devuelve un array con los estados accesibles del automata introducido
+ * 
+ * @param original el automata del que vamos a obtener los estados accesibles
+ * 
+ * @return Un array con los estados accesibles
+ */
 int *get_estados_accesibles(AFND *original);
 
-conjunto *get_subconjuntos(conjunto *conjunto_ini, AFND *afnd, int **matriz);
+/**
+ * Dada la matriz con los estados iniciales y finales obtiene la matriz de equivalencia final
+ * 
+ * @param original el automata del que vamos a obtener los estados accesibles
+ * @param matriz la matriz que vamos a convertir
+ * 
+ */
+
+void calcular_matriz(AFND *original, int **matriz);
 
 #endif

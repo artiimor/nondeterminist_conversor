@@ -87,6 +87,67 @@ AFND *AFND_convertir_a_determinista(AFND *original)
     return determinista;
 }
 
+AFND *minimizar_determinista(AFND *determinista)
+{
+    AFND *minimo;
+    int **matriz;
+    int i, j;
+    int estados, simbolos;
+
+    if (determinista == NULL)
+    {
+        return NULL;
+    }
+
+    estados = AFNDNumEstados(determinista);
+    simbolos = AFNDNumSimbolos(determinista);
+
+    /*Inicializamos los valores de la matriz con los FINALES/INICIAL_Y_FINAL y los otros tipos de estados*/
+    matriz = (int **)calloc(estados, sizeof(int *));
+    for (i = 0; i < estados; i++)
+    {
+        matriz[i] = (int *)calloc(estados, sizeof(int));
+    }
+    for (i = 0; i < estados; i++)
+    {
+        for (j = 0; j < estados; j++)
+        {
+            if ((AFNDTipoEstadoEn(determinista, i) == FINAL || AFNDTipoEstadoEn(determinista, i) == INICIAL_Y_FINAL) && (AFNDTipoEstadoEn(determinista, j) != FINAL && AFNDTipoEstadoEn(determinista, j) != INICIAL_Y_FINAL))
+            {
+                matriz[i][j] = 1;
+            }
+            else if ((AFNDTipoEstadoEn(determinista, j) == FINAL || AFNDTipoEstadoEn(determinista, j) == INICIAL_Y_FINAL) && (AFNDTipoEstadoEn(determinista, i) != FINAL && AFNDTipoEstadoEn(determinista, i) != INICIAL_Y_FINAL))
+            {
+                matriz[i][j] = 1;
+            }
+        }
+    }
+
+    /*Calculamos la matriz*/
+    calcular_matriz(determinista, matriz);
+
+    /*
+    for (i = 0; i < 8; i++)
+    {
+        for (j = 0; j < i; j++)
+        {
+            printf("|%d ", matriz[i][j]);
+        }
+        printf("\n");
+    }
+    */
+
+
+   /*PARTE DE LOS FREES*/
+    for (i = 0; i < 8; i++)
+    {
+        free(matriz[i]);
+    }
+    free(matriz);
+
+    return NULL;
+}
+
 transicion **AFND_obtener_tabla_transicion(AFND *AFND, int *n_estados)
 {
     transicion **tabla_transicion; /*Array de transiciones*/
@@ -197,7 +258,7 @@ void calcular_matriz(AFND *original, int **matriz)
         {
             for (j = i + 1; j < size; j++)
             {
-                comprobar_distinguibles(original, matriz, i, j);
+                check += comprobar_distinguibles(original, matriz, i, j);
             }
         }
     } while (check != 0);

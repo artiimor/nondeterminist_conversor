@@ -67,63 +67,15 @@ int main(int argc, char **argv)
     AFNDADot(AFND);
     AFNDADot(determinista);*/
 
-    matriz = (int **)calloc(8, sizeof(int *));
-    for (i = 0; i < 8; i++)
-    {
-        matriz[i] = (int *)calloc(8, sizeof(int));
-    }
-    for (i = 0; i < 8; i++)
-    {
-        for (j = 0; j < 8; j++)
-        {
-            if (AFNDTipoEstadoEn(AFND, i) == FINAL || AFNDTipoEstadoEn(AFND, j) == FINAL)
-            {
-                matriz[i][j] = 1;
-            }
-        }
-    }
+    
+    minimizar_determinista(AFND);
 
-    matriz[2][2] = 0;
 
-    for (i = 0; i < 8; i++)
-    {
-        for (j = 0; j < 8; j++)
-        {
-            printf("|%d ", matriz[i][j]);
-        }
-        printf("\n");
-    }
-
-    calcular_matriz(AFND, matriz);
-
-    for (i = 0; i < 8; i++)
-    {
-        for (j = i+1; j < 8; j++)
-        {
-            if (matriz[i][j] == 0 && i != j)
-            {
-                printf("LOS ESTADOS %s y %s estan juntitos de puta madre\n", AFNDNombreEstadoEn(AFND, i), AFNDNombreEstadoEn(AFND, j));
-            }
-        }
-        printf("\n");
-    }
-
-    for (i = 0; i < 8; i++)
-    {
-        for (j = 0; j < 8; j++)
-        {
-            printf("|%d ", matriz[i][j]);
-        }
-        printf("\n");
-    }
+    
 
     AFNDElimina(AFND);
 
-    for (i = 0; i < 8; i++)
-    {
-        free(matriz[i]);
-    }
-    free(matriz);
+    
 
     free_conjunto(conjunto_aux);
 

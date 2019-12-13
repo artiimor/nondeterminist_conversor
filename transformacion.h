@@ -9,6 +9,24 @@
 #include "conjunto.h"
 
 /**
+ * Convierte un automata finito no determinista a uno análogo pero determinsita
+ * 
+ * @param original el automata del que vamos a obtener el determinista
+ * 
+ * @return Un AFND que es la conversión a determinista 
+ */
+AFND *AFND_convertir_a_determinista(AFND *original);
+
+/**
+ * Convierte un automata finito determinista al mínimo posible
+ * 
+ * @param determinista el automata del que vamos a obtener el minimo equivalente
+ * 
+ * @return Un AFND que es el minimo automata equivalente 
+ */
+AFND *minimizar_determinista(AFND *determinista);
+
+/**
  * Comprueba si un automata tiene un estado con el nombre introducido
  * 
  * @param AFND el automata que vamos a comprobar
@@ -61,9 +79,15 @@ int *get_lambda_transition(AFND *original, int estado_input);
  */
 int *get_estados_destino_with_lambdas(AFND *original, int *estado, int n_estados_compruebo, int simbolo);
 
+/**
+ * Permite obtener la tabla de transicion de un AFND
+ * 
+ * @param AFND el automata del que vamos a obtener la tabla de transicion
+ * @param n_estados puntero en que almacenaremos los estados finales que hay
+ * 
+ * @return Un array de transiciones que representa la tabla de transicion 
+ */
 transicion **AFND_obtener_tabla_transicion(AFND *AFND, int *n_estados);
-
-AFND *AFND_convertir_a_determinista(AFND *original);
 
 /**
  * Comprueba si dos estados son distinguibles teniendo de antemano la matriz. Tambien

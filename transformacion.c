@@ -91,8 +91,10 @@ AFND *minimizar_determinista(AFND *determinista)
 {
     AFND *minimo;
     int **matriz;
-    int i, j;
+    int *estados_aux;
+    int i, j, aux;
     int estados, simbolos;
+    conjunto **subconjuntos;
 
     if (determinista == NULL)
     {
@@ -126,7 +128,8 @@ AFND *minimizar_determinista(AFND *determinista)
     /*Calculamos la matriz*/
     calcular_matriz(determinista, matriz);
 
-    /*
+    /*PRINTS FOR DEBUGGING*/
+
     for (i = 0; i < 8; i++)
     {
         for (j = 0; j < i; j++)
@@ -135,10 +138,23 @@ AFND *minimizar_determinista(AFND *determinista)
         }
         printf("\n");
     }
-    */
 
+    /*Obtenemos todos los subconjuntos posibles.*/
+    subconjuntos = get_subconjuntos(matriz, estados);
 
-   /*PARTE DE LOS FREES*/
+    for (i = 0; subconjuntos[i] != NULL; i++)
+    {
+        printf("ESTADOS EN EL SUBCONJUNTO %d: \n", i);
+        estados_aux = conjunto_get_estados(subconjuntos[i]);
+        aux = conjunto_get_cantidad(subconjuntos[i]);
+        for (j = 0; j < aux; j++)
+        {
+            printf("%s\n", AFNDNombreEstadoEn(determinista, estados_aux[j]));
+        }
+        printf("\n\n");
+    }
+
+    /*PARTE DE LOS FREES*/
     for (i = 0; i < 8; i++)
     {
         free(matriz[i]);
@@ -264,6 +280,67 @@ void calcular_matriz(AFND *original, int **matriz)
     } while (check != 0);
 
     return;
+}
+
+conjunto **get_subconjuntos(int **matriz, int dimension_matriz)
+{
+
+    conjunto **subconjuntos;
+    int num_subconjuntos, num_estados;
+    int flag_added;
+    int i, j;
+    int *estados_aux;
+
+    if (matriz == NULL)
+    {
+        return NULL;
+    }
+
+    /*Partimos de que minimo tiene que haber un estado en al minimo equivalente*/
+    num_subconjuntos = 0;
+    subconjuntos = (conjunto **)calloc(num_subconjuntos + 1, sizeof(conjunto *));
+    subconjuntos[0] = NULL;
+
+    /*Bucle que permite obtener un conjunto en concreto*/
+    for (i = 0; i < dimension_matriz; i++)
+    {
+        flag_added = 0;
+        /*Primero de todo verificamos que el estado en concreto no esta en ningun subestado anterior*/
+        for (j = 0; subconjuntos[j] != NULL; j++)
+        {
+            estados_aux = conjunto_get_estados(subconjuntos[j]);
+            if (isInArrayEstados(estados_aux, i, conjunto_get_cantidad(subconjuntos[j])) == 1)
+            {
+                flag_added = 1;
+            }
+        }
+        if (flag_added == 0)
+        {
+            estados_aux = (int *)calloc(1, sizeof(int));
+            num_estados = 1;
+            estados_aux[0] = i;
+            estados_aux[1] = -1;
+            for (j = i + 1; j < dimension_matriz; j++)
+            {
+
+                /*Si la matriz en la posicion i,j tiene un 0 significa que los estados son indistinguibles*/
+                if (matriz[i][j] == 0)
+                {
+                    num_estados++;
+                    estados_aux = realloc(estados_aux, (num_estados + 1) * sizeof(int));
+                    estados_aux[num_estados - 1] = j;
+                    estados_aux[num_estados] = -1;
+                }
+            }
+            /*Ahora creamos el nuevo subestado*/
+            num_subconjuntos++;
+            subconjuntos = realloc(subconjuntos, (num_subconjuntos + 1) * sizeof(conjunto *));
+            subconjuntos[num_subconjuntos - 1] = new_conjunto(estados_aux);
+            subconjuntos[num_subconjuntos] = NULL;
+        }
+    }
+
+    return subconjuntos;
 }
 
 /*TODO quitar esta funcion*/

@@ -116,9 +116,18 @@ int *get_estados_accesibles(AFND *original);
  * 
  * @param original el automata del que vamos a obtener los estados accesibles
  * @param matriz la matriz que vamos a convertir
- * 
  */
-
 void calcular_matriz(AFND *original, int **matriz);
+
+/**
+ * Dada la matriz con los estados equivalentes permite obtener los distintos subconjuntos.
+ * Siendo un subconjunto un conjunto de estados equivalentes en el automata finito minimo equivalente
+ * 
+ * @param matriz la matriz de equivalencia
+ * @param dimension_matriz el tamaño de la matriz de equivalencia
+ * 
+ * @return un array de conjuntos que representa los distintos subconjuntos del minimo equivalente
+ */
+conjunto **get_subconjuntos(int **matriz, int dimension_matriz);
 
 #endif

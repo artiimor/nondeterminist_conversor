@@ -24,7 +24,7 @@ AFND *AFND_convertir_a_determinista(AFND *original);
  * 
  * @return Un AFND que es el minimo automata equivalente 
  */
-AFND *minimizar_determinista(AFND *determinista);
+AFND *minimizar_determinista(AFND *original);
 
 /**
  * Comprueba si un automata tiene un estado con el nombre introducido

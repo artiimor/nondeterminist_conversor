@@ -48,6 +48,7 @@ clean :
 	rm -rf *.pdf
 
 dot :
+	dot -Tpdf minimo.dot -o minimo.pdf
 	dot -Tpdf determinista.dot -o determinista.pdf
 	dot -Tpdf automata.dot -o no_determinista.pdf
 

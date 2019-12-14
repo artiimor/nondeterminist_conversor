@@ -87,24 +87,27 @@ AFND *AFND_convertir_a_determinista(AFND *original)
     return determinista;
 }
 
-AFND *minimizar_determinista(AFND *determinista)
+AFND *minimizar_determinista(AFND *original)
 {
+    AFND *determinista;
     AFND *minimo;
     int **matriz;
     int *estados_aux;
     int i, j, aux;
     int estados, simbolos;
     conjunto **subconjuntos;
-    char *nombre_aux;
-    char *nombre, *nombre_pointer;
+    char *nombre_aux, *nombre_aux2;
+    char *nombre, *nombre_simbolo;
     int len_aux;
     int tipo_aux;
 
-    if (determinista == NULL)
+    if (original == NULL)
     {
         return NULL;
     }
 
+    determinista = AFND_convertir_a_determinista(original);
+    
     estados = AFNDNumEstados(determinista);
     simbolos = AFNDNumSimbolos(determinista);
 
@@ -238,6 +241,29 @@ AFND *minimizar_determinista(AFND *determinista)
     }
 
     /*anadimos las transiciones*/
+    for (i = 0; subconjuntos[i] != NULL; i++)
+    {
+        estados_aux = conjunto_get_estados(subconjuntos[i]);
+        /*Como sabemos que los hemos introducido en order en minimo*/
+        /*Podemos ir introduciendo las transiciones en orden*/
+        nombre = AFNDNombreEstadoEn(minimo, i);
+        for (j = 0; j < simbolos; j++)
+        {
+            nombre_simbolo = AFNDSimboloEn(determinista, j);
+            /*Obtenemos el nombre del estado al que transita comprobando todos los estados*/
+            for (aux = 0; AFNDTransicionIndicesEstadoiSimboloEstadof(determinista, estados_aux[0], j, aux) != 1; aux++)
+                ;
+
+            nombre_aux2 = AFNDNombreEstadoEn(determinista, aux);
+            /*Ahora vemos con que nuevo estado corresponde*/
+            for (aux = 0; strstr(AFNDNombreEstadoEn(minimo, aux), nombre_aux2) == NULL; aux++)
+                ;
+
+            nombre_aux = AFNDNombreEstadoEn(minimo, aux);
+
+            AFNDInsertaTransicion(minimo, nombre, nombre_simbolo, nombre_aux);
+        }
+    }
 
     /*PARTE DE LOS FREES*/
     for (i = 0; i < estados; i++)
@@ -246,10 +272,13 @@ AFND *minimizar_determinista(AFND *determinista)
     }
     free(matriz);
 
-    for (i = 0; subconjuntos[i] != NULL; i++){
+    for (i = 0; subconjuntos[i] != NULL; i++)
+    {
         free_conjunto(subconjuntos[i]);
     }
     free(subconjuntos);
+
+    AFNDElimina(determinista);
 
     return minimo;
 }

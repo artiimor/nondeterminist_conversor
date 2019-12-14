@@ -95,6 +95,10 @@ AFND *minimizar_determinista(AFND *determinista)
     int i, j, aux;
     int estados, simbolos;
     conjunto **subconjuntos;
+    char *nombre_aux;
+    char *nombre, *nombre_pointer;
+    int len_aux;
+    int tipo_aux;
 
     if (determinista == NULL)
     {
@@ -129,7 +133,7 @@ AFND *minimizar_determinista(AFND *determinista)
     calcular_matriz(determinista, matriz);
 
     /*PRINTS FOR DEBUGGING*/
-
+    /*
     for (i = 0; i < 8; i++)
     {
         for (j = 0; j < i; j++)
@@ -138,10 +142,13 @@ AFND *minimizar_determinista(AFND *determinista)
         }
         printf("\n");
     }
+    */
 
     /*Obtenemos todos los subconjuntos posibles.*/
     subconjuntos = get_subconjuntos(matriz, estados);
 
+    /*PRINTS FOR DEBUGGING*/
+    /*
     for (i = 0; subconjuntos[i] != NULL; i++)
     {
         printf("ESTADOS EN EL SUBCONJUNTO %d: \n", i);
@@ -153,15 +160,98 @@ AFND *minimizar_determinista(AFND *determinista)
         }
         printf("\n\n");
     }
+    */
+
+    for (aux = 0; subconjuntos[aux] != NULL; aux++)
+        ;
+
+    /*Ahora ya podemos crear el minimo automata*/
+    minimo = AFNDNuevo("minimo", aux, simbolos);
+
+    /*anadimos los simbolos*/
+    for (i = 0; i < simbolos; i++)
+    {
+        AFNDInsertaSimbolo(minimo, AFNDSimboloEn(determinista, i));
+    }
+
+    /*anadimos los nuevos estados*/
+    for (i = 0; subconjuntos[i] != NULL; i++)
+    {
+        tipo_aux = NORMAL;
+        estados_aux = conjunto_get_estados(subconjuntos[i]);
+        aux = conjunto_get_cantidad(subconjuntos[i]);
+        nombre_aux = AFNDNombreEstadoEn(determinista, estados_aux[0]);
+        len_aux = strlen(nombre_aux);
+
+        /*******************************************/
+        /****************CALCULO NOMBRE*************/
+        /*******************************************/
+        /*nombre tiene el nombre del primer estado*/
+        nombre = (char *)calloc(len_aux, sizeof(char *));
+        strcpy(nombre, nombre_aux);
+
+        /*Vamos añadiendo los nombre de los otro estados*/
+        for (j = 1; j < aux; j++)
+        {
+            /*Cogemos el nombre que corresponde*/
+            nombre_aux = AFNDNombreEstadoEn(determinista, estados_aux[j]);
+
+            /*Redimensionamos*/
+            len_aux += strlen(nombre_aux);
+            nombre = realloc(nombre, len_aux * sizeof(char *));
+            /*añadimos la cadena*/
+            strcat(nombre, nombre_aux);
+        }
+        /*******************************************/
+        /**************FIN CALCULO NOMBRE***********/
+        /*******************************************/
+
+        /*CALCULO DEL TIPO DEL ESTADO*/
+        for (j = 0; j < aux; j++)
+        {
+            if (AFNDTipoEstadoEn(determinista, estados_aux[j]) == INICIAL)
+            {
+                if (tipo_aux == FINAL)
+                {
+                    tipo_aux = INICIAL_Y_FINAL;
+                }
+                else if (tipo_aux == NORMAL)
+                {
+                    tipo_aux = INICIAL;
+                }
+            }
+            else if (AFNDTipoEstadoEn(determinista, estados_aux[j]) == FINAL)
+            {
+                if (tipo_aux == INICIAL)
+                {
+                    tipo_aux = INICIAL_Y_FINAL;
+                }
+                else if (tipo_aux == NORMAL)
+                {
+                    tipo_aux = FINAL;
+                }
+            }
+        }
+        /*anadimos el estado*/
+        AFNDInsertaEstado(minimo, nombre, tipo_aux);
+        free(nombre);
+    }
+
+    /*anadimos las transiciones*/
 
     /*PARTE DE LOS FREES*/
-    for (i = 0; i < 8; i++)
+    for (i = 0; i < estados; i++)
     {
         free(matriz[i]);
     }
     free(matriz);
 
-    return NULL;
+    for (i = 0; subconjuntos[i] != NULL; i++){
+        free_conjunto(subconjuntos[i]);
+    }
+    free(subconjuntos);
+
+    return minimo;
 }
 
 transicion **AFND_obtener_tabla_transicion(AFND *AFND, int *n_estados)
@@ -299,7 +389,7 @@ conjunto **get_subconjuntos(int **matriz, int dimension_matriz)
     /*Partimos de que minimo tiene que haber un estado en al minimo equivalente*/
     num_subconjuntos = 0;
     subconjuntos = (conjunto **)calloc(num_subconjuntos + 1, sizeof(conjunto *));
-    subconjuntos[0] = NULL;
+    subconjuntos[num_subconjuntos] = NULL;
 
     /*Bucle que permite obtener un conjunto en concreto*/
     for (i = 0; i < dimension_matriz; i++)
@@ -316,7 +406,7 @@ conjunto **get_subconjuntos(int **matriz, int dimension_matriz)
         }
         if (flag_added == 0)
         {
-            estados_aux = (int *)calloc(1, sizeof(int));
+            estados_aux = (int *)calloc(2, sizeof(int));
             num_estados = 1;
             estados_aux[0] = i;
             estados_aux[1] = -1;
@@ -337,13 +427,13 @@ conjunto **get_subconjuntos(int **matriz, int dimension_matriz)
             subconjuntos = realloc(subconjuntos, (num_subconjuntos + 1) * sizeof(conjunto *));
             subconjuntos[num_subconjuntos - 1] = new_conjunto(estados_aux);
             subconjuntos[num_subconjuntos] = NULL;
+            free(estados_aux);
         }
     }
 
     return subconjuntos;
 }
 
-/*TODO quitar esta funcion*/
 int *get_estados_accesibles(AFND *original)
 {
     int i, j;

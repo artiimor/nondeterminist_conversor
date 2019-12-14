@@ -68,12 +68,15 @@ int main(int argc, char **argv)
     AFNDADot(determinista);*/
 
     
-    minimizar_determinista(AFND);
+    determinista = minimizar_determinista(AFND);
+
+    AFNDImprime(stdout, determinista);
 
 
     
 
     AFNDElimina(AFND);
+    AFNDElimina(determinista);
 
     
 
